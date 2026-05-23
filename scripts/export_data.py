@@ -16,10 +16,14 @@ from __future__ import annotations
 
 import json
 import os
-import sqlite3
 import sys
 from collections import defaultdict
 from pathlib import Path
+
+# sqlite3 is imported lazily inside main() so this script doesn't crash
+# on environments without sqlite3 (e.g. Cloudflare Pages build container,
+# which uses a Python install without the sqlite3 module). On those
+# environments we never need sqlite3 because we use the committed JSON.
 
 # Resolve DB path
 DB_ENV = os.environ.get("MCP_SCANNER_DB_PATH")
@@ -32,7 +36,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 PUBLIC_DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 
-def _row_to_dict(row: sqlite3.Row) -> dict:
+def _row_to_dict(row) -> dict:
     """Convert a SQLite row to a dict, normalising booleans and strings."""
     d = dict(row)
     # Normalise SQLite bool ints to JS booleans where the column name suggests bool
@@ -56,6 +60,9 @@ def main() -> None:
         print(f"FATAL: DB not found at {DB_PATH} AND no committed data in src/data/", file=sys.stderr)
         print("Run this locally first, commit the generated JSON, then deploy.", file=sys.stderr)
         sys.exit(1)
+
+    # Lazy import — only needed when we actually read from the DB
+    import sqlite3
 
     print(f"Reading from {DB_PATH}")
     conn = sqlite3.connect(DB_PATH)
