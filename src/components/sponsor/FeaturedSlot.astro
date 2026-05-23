@@ -1,0 +1,31 @@
+---
+// Inline Featured slot — appears on home and category pages above the organic top list.
+// Replace inner content with real sponsor data once you have one.
+//
+// Props let you customize per page (e.g. different copy for /category vs home).
+
+interface Props {
+  title?: string;
+  body?: string;
+  href?: string;
+  cta?: string;
+}
+const {
+  title = "Your tool here",
+  body = "Reach 28,577+ MCP developers actively browsing for tools to build with.",
+  href = "/sponsors",
+  cta = "Become a Featured listing →",
+} = Astro.props;
+---
+<aside class="sponsor-slot">
+  <span class="sponsor-tag">Sponsored</span>
+  <p class="title">{title}</p>
+  <p class="body">{body}</p>
+  <a href={href} class="cta">{cta}</a>
+</aside>
+
+<style>
+  .title { font-family: var(--font-mono); font-size: 14px; margin: 0; color: var(--text-primary); }
+  .body { font-size: 12px; color: var(--text-secondary); margin: 4px 0 6px; }
+  .cta { font-size: 12px; color: var(--link); }
+</style>

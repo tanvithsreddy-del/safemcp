@@ -1,0 +1,60 @@
+---
+import Base from "../layouts/Base.astro";
+import SearchBox from "../components/SearchBox.astro";
+import ServerRow from "../components/ServerRow.astro";
+import CategoryGrid from "../components/CategoryGrid.astro";
+import FeaturedSlot from "../components/sponsor/FeaturedSlot.astro";
+import { SHOW_SPONSORS } from "../lib/flags";
+import { topServers, allCategories, totalCount } from "../lib/data";
+
+const total = totalCount();
+const topTen = topServers.slice(0, 10);
+---
+<Base
+  title="SafeMCP — Directory of Model Context Protocol servers"
+  description={`The largest free directory of Model Context Protocol servers. ${total.toLocaleString()} verified servers, individually categorized and scored.`}
+>
+  <section class="hero">
+    <h1>The largest free directory of MCP servers.</h1>
+    <p class="lede">{total.toLocaleString()} verified Model Context Protocol servers, individually categorized and scored.</p>
+  </section>
+
+  <div class="stats">
+    <div class="stat">
+      <p class="stat-label">Verified servers</p>
+      <p class="stat-value">{total.toLocaleString()}</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">Categories</p>
+      <p class="stat-value">{allCategories.length}</p>
+    </div>
+    <div class="stat">
+      <p class="stat-label">Individually scored</p>
+      <p class="stat-value">All</p>
+    </div>
+  </div>
+
+  <SearchBox />
+
+  <p class="eyebrow">Browse by category</p>
+  <CategoryGrid categories={allCategories} limit={8} />
+  <p style="margin: 12px 0 32px;"><a href="/browse">See all {allCategories.length} categories →</a></p>
+
+  {SHOW_SPONSORS && <FeaturedSlot />}
+
+  <p class="eyebrow">Top picks</p>
+  <div class="row-list">
+    {topTen.map((s) => <ServerRow server={s} />)}
+  </div>
+  <p style="margin: 12px 0 0;"><a href="/browse">Browse all {total.toLocaleString()} servers →</a></p>
+
+  <p class="disclaimer">
+    The Recommended Score is a composite of confidence, popularity, multi-source presence, discoverability, and category clarity. It is <strong>not a security audit</strong>. Review code before connecting any MCP server.
+  </p>
+</Base>
+
+<style>
+  .hero { margin: 8px 0 20px; }
+  .hero h1 { margin: 0 0 6px; }
+  .lede { color: var(--text-secondary); font-size: 14px; margin: 0; max-width: 60ch; line-height: 1.6; }
+</style>

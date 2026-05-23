@@ -1,0 +1,140 @@
+---
+import Base from "../layouts/Base.astro";
+import { SHOW_SPONSORS } from "../lib/flags";
+import { totalCount, allCategories } from "../lib/data";
+
+// If sponsor mode is off, redirect to the homepage at build time.
+// (The page will simply not generate — there's no link from any non-sponsor page.)
+const total = totalCount();
+---
+{!SHOW_SPONSORS ? (
+  <Base title="SafeMCP">
+    <p>This page is not active. <a href="/">← Back to directory</a></p>
+  </Base>
+) : (
+<Base title="Sponsor SafeMCP" description={`Reach ${total.toLocaleString()}+ MCP developers actively browsing for tools to build with.`}>
+  <h1>Put your tool in front of MCP developers</h1>
+  <p class="lede">
+    SafeMCP gets discovered by developers actively building AI agents.
+    No clickbait, no ads-disguised-as-search-results.
+    Plain sponsorships, plainly labeled.
+  </p>
+
+  <p class="eyebrow" style="margin-top: 32px;">What we offer</p>
+
+  <div class="tiers">
+    <div class="tier">
+      <p class="tier-name">Verified</p>
+      <p class="tier-price">$29<span class="muted small">/mo</span></p>
+      <p class="tier-tag">For tool builders</p>
+      <ul>
+        <li>Verified badge next to your server</li>
+        <li>Logo on your server detail page</li>
+        <li>Contact link on detail page</li>
+        <li>Priority in category listings</li>
+      </ul>
+      <a href="mailto:hello@safemcp.info?subject=Verified%20listing" class="cta">Get Verified →</a>
+    </div>
+
+    <div class="tier highlighted">
+      <p class="tier-name">Featured</p>
+      <p class="tier-price">$99<span class="muted small">/mo</span></p>
+      <p class="tier-tag">For most sponsors</p>
+      <ul>
+        <li>Top slot on home page <span class="muted">Sponsored</span></li>
+        <li>Top slot on category page of your choice</li>
+        <li>Logo + tagline</li>
+        <li>Click-through analytics monthly</li>
+        <li>3-month minimum</li>
+      </ul>
+      <a href="mailto:hello@safemcp.info?subject=Featured%20listing" class="cta">Get Featured →</a>
+    </div>
+
+    <div class="tier">
+      <p class="tier-name">Category Sponsor</p>
+      <p class="tier-price">$299<span class="muted small">/mo</span></p>
+      <p class="tier-tag">Own a category</p>
+      <ul>
+        <li>Exclusive sponsorship of one category</li>
+        <li>Header banner on that category page</li>
+        <li>"Sponsored by..." footer on every server in that category</li>
+        <li>Lockout from competing sponsors</li>
+        <li>6-month minimum</li>
+      </ul>
+      <a href="mailto:hello@safemcp.info?subject=Category%20sponsor" class="cta">Talk to us →</a>
+    </div>
+
+    <div class="tier">
+      <p class="tier-name">Site Sponsor</p>
+      <p class="tier-price">$999<span class="muted small">/mo</span></p>
+      <p class="tier-tag">Top-of-page everywhere</p>
+      <ul>
+        <li>Header banner on every page</li>
+        <li>"Powered by..." in footer</li>
+        <li>Newsletter mentions when launched</li>
+        <li>Lockout from competing sponsors</li>
+        <li>6-month minimum</li>
+      </ul>
+      <a href="mailto:hello@safemcp.info?subject=Site%20sponsor" class="cta">Talk to us →</a>
+    </div>
+  </div>
+
+  <p class="eyebrow" style="margin-top: 40px;">What we don't do</p>
+  <ul class="dont-list">
+    <li>Hide which listings are sponsored (every slot is clearly labeled)</li>
+    <li>Sell access to data we don't own</li>
+    <li>Promote a sponsor in any category they're competing against organically</li>
+    <li>Take payment to remove or downrank a competitor</li>
+  </ul>
+
+  <p class="eyebrow" style="margin-top: 32px;">Audience</p>
+  <p>
+    {total.toLocaleString()} servers indexed across {allCategories.length} categories.
+    Traffic data available on request once we've been live ~30 days.
+  </p>
+
+  <p class="eyebrow" style="margin-top: 32px;">Contact</p>
+  <p>
+    Email <a href="mailto:hello@safemcp.info">hello@safemcp.info</a> — include
+    your tool, target category, and budget.
+  </p>
+</Base>
+)}
+
+<style>
+  .lede { font-size: 15px; color: var(--text-primary); max-width: 60ch; line-height: 1.7; margin-top: 8px; }
+  .small { font-size: 12px; }
+
+  .tiers {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+    margin: 16px 0;
+  }
+  @media (max-width: 720px) {
+    .tiers { grid-template-columns: 1fr; }
+  }
+
+  .tier {
+    background: var(--bg-surface);
+    border: 0.5px solid var(--border-subtle);
+    border-radius: var(--radius-md);
+    padding: 18px 20px;
+  }
+  .tier.highlighted {
+    border: 0.5px solid var(--tier-high-fg);
+  }
+  .tier-name { font-size: 14px; font-weight: 500; margin: 0; color: var(--text-primary); }
+  .tier-price { font-family: var(--font-mono); font-size: 28px; font-weight: 500; margin: 4px 0 2px; color: var(--text-primary); }
+  .tier-tag { font-size: 12px; color: var(--text-secondary); margin: 0 0 12px; }
+  .tier ul {
+    padding-left: 18px;
+    margin: 8px 0 16px;
+    color: var(--text-primary);
+    font-size: 13px;
+    line-height: 1.7;
+  }
+  .cta { font-size: 13px; }
+
+  .dont-list { color: var(--text-primary); padding-left: 18px; max-width: 70ch; line-height: 1.7; }
+</style>

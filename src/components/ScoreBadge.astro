@@ -1,0 +1,9 @@
+---
+import { scoreTierClass } from "../lib/score";
+interface Props {
+  score: number | null | undefined;
+}
+const { score } = Astro.props;
+const display = score ?? 0;
+---
+<span class={scoreTierClass(score)}>{display}</span>

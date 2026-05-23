@@ -1,0 +1,20 @@
+---
+import type { CategorySummary } from "../lib/data";
+
+interface Props {
+  categories: CategorySummary[];
+  limit?: number;
+  variant?: "default" | "two-col";
+}
+const { categories, limit, variant = "default" } = Astro.props;
+const items = limit ? categories.slice(0, limit) : categories;
+const gridClass = variant === "two-col" ? "cat-grid cat-grid-2" : "cat-grid";
+---
+<div class={gridClass}>
+  {items.map((c) => (
+    <a href={`/category/${c.slug}/`} class="cat-card">
+      <p class="cat-name">{c.name}</p>
+      <p class="cat-count">{c.count.toLocaleString()}</p>
+    </a>
+  ))}
+</div>

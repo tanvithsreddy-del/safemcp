@@ -1,0 +1,75 @@
+---
+import Base from "../layouts/Base.astro";
+import { totalCount, allCategories } from "../lib/data";
+const total = totalCount();
+---
+<Base title="About — SafeMCP" description="What SafeMCP is, how the Recommended Score works, and what it doesn't measure.">
+  <h1>About SafeMCP</h1>
+
+  <section style="margin: 16px 0 32px;">
+    <p>
+      SafeMCP is the largest free directory of Model Context Protocol servers.
+      As of today we list <strong>{total.toLocaleString()}</strong> verified MCP servers across <strong>{allCategories.length}</strong> categories, individually categorized and scored.
+    </p>
+    <p>
+      Every server in this directory has been individually verified, categorized against a {allCategories.length}-category taxonomy, and scored on five quality signals.
+    </p>
+    <p>
+      Bigger than Glama (22,775), mcp.so (~21,000), and PulseMCP (~15,700).
+    </p>
+  </section>
+
+  <h2>The Recommended Score</h2>
+  <p style="margin: 8px 0 12px;">
+    A composite 0-100 quality signal computed from five components:
+  </p>
+  <table class="components">
+    <tr><td class="mono">25</td><td>Verification confidence</td><td class="muted">At our discretion</td></tr>
+    <tr><td class="mono">25</td><td>Repository popularity</td><td class="muted">GitHub stars (logarithmic)</td></tr>
+    <tr><td class="mono">15</td><td>Multi-source presence</td><td class="muted">Appears in multiple aggregators</td></tr>
+    <tr><td class="mono">15</td><td>Discoverability</td><td class="muted">Description quality and fork count</td></tr>
+    <tr><td class="mono">20</td><td>Category clarity</td><td class="muted">Specific category vs. generic 'other'</td></tr>
+  </table>
+
+  <h2 style="margin-top: 32px;">What the score is NOT</h2>
+  <p style="margin: 8px 0 0;">
+    The Recommended Score reflects metadata quality and popularity. It does <strong>not</strong> measure:
+  </p>
+  <ul>
+    <li>Code quality or maintainability</li>
+    <li>Security vulnerabilities or supply-chain safety</li>
+    <li>Malware or malicious behavior</li>
+    <li>License compatibility</li>
+  </ul>
+  <p>
+    Review the code before connecting any MCP server to a tool that handles your data.
+  </p>
+
+  <h2 style="margin-top: 32px;">Contact</h2>
+  <p style="margin: 8px 0 0;">
+    Email <a href="mailto:hello@safemcp.info">hello@safemcp.info</a> for corrections, additions, removal requests, or sponsorship inquiries.
+  </p>
+</Base>
+
+<style>
+  p { color: var(--text-primary); line-height: 1.7; max-width: 70ch; }
+  .muted { color: var(--text-secondary); }
+  ul { padding-left: 20px; color: var(--text-primary); line-height: 1.8; max-width: 70ch; }
+  table.components {
+    border-collapse: collapse;
+    margin: 12px 0;
+    font-size: 13px;
+  }
+  table.components td {
+    padding: 8px 12px;
+    border-bottom: 0.5px solid var(--border-subtle);
+    vertical-align: top;
+  }
+  table.components td:first-child {
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    text-align: right;
+    width: 40px;
+  }
+  table.components td:nth-child(2) { width: 200px; }
+</style>

@@ -1,0 +1,65 @@
+---
+import "../styles/global.css";
+import Header from "../components/Header.astro";
+import Footer from "../components/Footer.astro";
+import { SHOW_SPONSORS } from "../lib/flags";
+import HeaderBanner from "../components/sponsor/HeaderBanner.astro";
+
+interface Props {
+  title: string;
+  description?: string;
+}
+const {
+  title,
+  description = "The largest free directory of Model Context Protocol servers. 28,577 verified servers, individually categorized and scored.",
+} = Astro.props;
+
+const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+---
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#0a0a0a" />
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <!-- Open Graph -->
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:site_name" content="SafeMCP" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:title" content={title} />
+    <meta name="twitter:description" content={description} />
+
+    <!-- Resolve theme before paint to prevent flash -->
+    <script is:inline>
+      (function () {
+        try {
+          // Dark by default. Only switch to light if the user explicitly toggled before.
+          const saved = localStorage.getItem("safemcp-theme");
+          const theme = saved === "light" ? "light" : "dark";
+          document.documentElement.setAttribute("data-theme", theme);
+        } catch (e) { /* no-op */ }
+      })();
+    </script>
+  </head>
+  <body>
+    {SHOW_SPONSORS && <HeaderBanner />}
+    <Header />
+    <main class="page">
+      <div class="container">
+        <slot />
+      </div>
+    </main>
+    <Footer />
+  </body>
+</html>

@@ -1,0 +1,48 @@
+---
+import Base from "../../layouts/Base.astro";
+import ServerRow from "../../components/ServerRow.astro";
+import FeaturedSlot from "../../components/sponsor/FeaturedSlot.astro";
+import SponsorCTA from "../../components/sponsor/SponsorCTA.astro";
+import { SHOW_SPONSORS } from "../../lib/flags";
+import { allCategories, serversByCategory } from "../../lib/data";
+
+export async function getStaticPaths() {
+  return allCategories.map((c) => ({
+    params: { slug: c.slug },
+    props: { category: c },
+  }));
+}
+
+const { slug } = Astro.params;
+const { category } = Astro.props;
+const servers = serversByCategory(slug!);
+---
+<Base
+  title={`${category.name} MCP servers — SafeMCP`}
+  description={`${servers.length.toLocaleString()} ${category.name} MCP servers, scored and sorted.`}
+>
+  <p class="muted small"><a href="/browse">← All categories</a></p>
+
+  <h1 class="mono cat-title">{category.name}</h1>
+  <p class="muted lede">{servers.length.toLocaleString()} servers in this category. Sorted by Recommended Score.</p>
+
+  {SHOW_SPONSORS && (
+    <FeaturedSlot
+      title={`Reach developers browsing ${category.name}`}
+      body={`Your tool, featured at the top of this category page. ${servers.length.toLocaleString()} qualified visitors per ${servers.length > 500 ? "week" : "month"}.`}
+      cta="Sponsor this category →"
+    />
+  )}
+
+  <div class="row-list" style="margin-top: 20px;">
+    {servers.map((s) => <ServerRow server={s} />)}
+  </div>
+
+  {SHOW_SPONSORS && <SponsorCTA category={category.name} />}
+</Base>
+
+<style>
+  .small { font-size: 12px; }
+  .cat-title { font-size: 22px; margin: 8px 0 4px; }
+  .lede { font-size: 14px; margin: 0 0 20px; }
+</style>

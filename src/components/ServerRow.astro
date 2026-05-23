@@ -1,0 +1,23 @@
+---
+import ScoreBadge from "./ScoreBadge.astro";
+import type { Server } from "../lib/data";
+
+interface Props {
+  server: Server;
+}
+const { server } = Astro.props;
+const href = `/s/${server.owner}/${server.name}/`;
+const desc = server.primary_function || server.description || "";
+const stars = (server.stars ?? 0).toLocaleString();
+---
+<a href={href} class="row">
+  <ScoreBadge score={server.recommended_score} />
+  <div>
+    <p class="repo">{server.owner}<span class="slash">/</span>{server.name}</p>
+    {desc && <p class="desc">{desc}</p>}
+  </div>
+  <div class="meta">
+    <div>★ {stars}</div>
+    <div class="cat">{server.mcp_category || "unknown"}</div>
+  </div>
+</a>

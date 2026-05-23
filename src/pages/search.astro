@@ -1,0 +1,150 @@
+---
+import Base from "../layouts/Base.astro";
+import SearchBox from "../components/SearchBox.astro";
+import { totalCount } from "../lib/data";
+const total = totalCount();
+---
+<Base title="Search — SafeMCP" description={`Search ${total.toLocaleString()} MCP servers.`}>
+  <h1>Search</h1>
+  <p class="muted" style="margin: 4px 0 20px; font-size: 14px;">Searching {total.toLocaleString()} verified servers.</p>
+
+  <SearchBox />
+
+  <div id="search-status" class="muted small" style="margin-bottom: 16px;">Loading search index…</div>
+  <div id="search-results" class="row-list"></div>
+  <div id="empty" class="muted small" style="display: none; margin-top: 16px;">
+    No matches. Try a shorter or more general query.
+  </div>
+</Base>
+
+<script>
+  // Lightweight client-side search.
+  // Loads search-index.json once, filters as the user types.
+
+  type Idx = {
+    n: string;       // name
+    o: string;       // owner
+    d: string;       // description (truncated)
+    c: string;       // category
+    s: number;       // score
+    st: number;      // stars
+    pf: string;      // primary_function
+  };
+
+  function tierClass(score: number) {
+    if (score >= 80) return "score score-high";
+    if (score >= 60) return "score score-mid";
+    if (score >= 40) return "score score-low";
+    return "score score-base";
+  }
+
+  function escapeHtml(str: string) {
+    return str
+      .replace(/&/g, "&amp;")
+      .replace(/</g, "&lt;")
+      .replace(/>/g, "&gt;")
+      .replace(/"/g, "&quot;");
+  }
+
+  function renderRow(s: Idx) {
+    const desc = escapeHtml(s.pf || s.d || "");
+    return `
+      <a href="/s/${encodeURIComponent(s.o)}/${encodeURIComponent(s.n)}/" class="row">
+        <span class="${tierClass(s.s)}">${s.s}</span>
+        <div>
+          <p class="repo">${escapeHtml(s.o)}<span class="slash">/</span>${escapeHtml(s.n)}</p>
+          ${desc ? `<p class="desc">${desc}</p>` : ""}
+        </div>
+        <div class="meta">
+          <div>★ ${s.st.toLocaleString()}</div>
+          <div class="cat">${escapeHtml(s.c)}</div>
+        </div>
+      </a>
+    `;
+  }
+
+  function getQueryFromUrl(): string {
+    const params = new URLSearchParams(window.location.search);
+    return (params.get("q") || "").trim();
+  }
+
+  async function loadIndex(): Promise<Idx[]> {
+    const res = await fetch("/data/search-index.json");
+    if (!res.ok) throw new Error("Failed to load search index");
+    return res.json();
+  }
+
+  function search(idx: Idx[], q: string, limit = 200): Idx[] {
+    if (!q) return [];
+    const needle = q.toLowerCase();
+    const tokens = needle.split(/\s+/).filter(Boolean);
+    const matches: Array<Idx & { _rank: number }> = [];
+    for (const s of idx) {
+      const hay = (s.n + " " + s.o + " " + s.c + " " + s.d + " " + s.pf).toLowerCase();
+      let rank = 0;
+      let ok = true;
+      for (const t of tokens) {
+        if (!hay.includes(t)) { ok = false; break; }
+      }
+      if (!ok) continue;
+      // Rank: name match > category match > description match, score breaks ties
+      if (s.n.toLowerCase().includes(needle)) rank += 100;
+      if (s.o.toLowerCase().includes(needle)) rank += 50;
+      if (s.c.toLowerCase() === needle) rank += 80;
+      if (s.c.toLowerCase().includes(needle)) rank += 20;
+      rank += s.s; // score adds slight bias
+      matches.push({ ...s, _rank: rank });
+    }
+    matches.sort((a, b) => b._rank - a._rank);
+    return matches.slice(0, limit);
+  }
+
+  (async function init() {
+    const status = document.getElementById("search-status")!;
+    const out = document.getElementById("search-results")!;
+    const empty = document.getElementById("empty")!;
+    const input = document.querySelector<HTMLInputElement>('input[name="q"]')!;
+
+    let idx: Idx[] = [];
+    try {
+      idx = await loadIndex();
+      status.textContent = `Ready. Searching ${idx.length.toLocaleString()} servers.`;
+    } catch (e) {
+      status.textContent = "Failed to load search index. Reload the page.";
+      return;
+    }
+
+    function run(q: string) {
+      const results = search(idx, q);
+      if (!q) {
+        out.innerHTML = "";
+        empty.style.display = "none";
+        status.textContent = `Ready. Searching ${idx.length.toLocaleString()} servers.`;
+        return;
+      }
+      if (results.length === 0) {
+        out.innerHTML = "";
+        empty.style.display = "";
+        status.textContent = `No results for "${q}".`;
+        return;
+      }
+      empty.style.display = "none";
+      status.textContent = `${results.length.toLocaleString()} result${results.length === 1 ? "" : "s"} for "${q}"`;
+      out.innerHTML = results.map(renderRow).join("");
+    }
+
+    // Seed from URL ?q=
+    const initial = getQueryFromUrl();
+    if (initial) {
+      input.value = initial;
+      run(initial);
+    }
+
+    // Live search as the user types (debounced)
+    let timer: number | undefined;
+    input.addEventListener("input", () => {
+      window.clearTimeout(timer);
+      timer = window.setTimeout(() => run(input.value.trim()), 80);
+    });
+  })();
+</script>

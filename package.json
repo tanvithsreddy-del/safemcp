@@ -1,0 +1,21 @@
+{
+  "name": "safemcp-site",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npm run export-data && astro dev",
+    "build": "npm run export-data && astro build",
+    "build:no-export": "astro build",
+    "preview": "astro preview",
+    "astro": "astro",
+    "export-data": "python3 scripts/export_data.py"
+  },
+  "dependencies": {
+    "astro": "^4.16.18"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2"
+  }
+}

@@ -1,0 +1,20 @@
+---
+interface Props {
+  category?: string;
+}
+const { category } = Astro.props;
+const display = category || "this category";
+---
+<aside class="sponsor-slot" style="margin-top: 24px;">
+  <span class="sponsor-tag">Sponsor slot</span>
+  <p class="title">Sponsor <span class="mono">{display}</span></p>
+  <p class="body">Get your product in front of every developer browsing {display}. Lifetime category sponsorship from $99/mo.</p>
+  <a href="/sponsors" class="cta">See pricing →</a>
+</aside>
+
+<style>
+  .title { font-size: 14px; margin: 0; color: var(--text-primary); }
+  .title .mono { color: var(--text-secondary); }
+  .body { font-size: 12px; color: var(--text-secondary); margin: 4px 0 6px; }
+  .cta { font-size: 12px; color: var(--link); }
+</style>

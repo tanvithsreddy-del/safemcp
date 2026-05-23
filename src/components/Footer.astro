@@ -1,0 +1,34 @@
+---
+import { totalCount } from "../lib/data";
+const count = totalCount();
+---
+<footer>
+  <div class="container footer-inner">
+    <p class="dim">
+      <span class="mono">safemcp.info</span> · {count.toLocaleString()} verified MCP servers · individually categorized and scored
+    </p>
+    <p class="dim small">
+      The Recommended Score is not a security audit. Review code before connecting any server.
+      <span class="sep">·</span>
+      <a href="https://github.com/modelcontextprotocol" target="_blank" rel="noopener">About MCP</a>
+    </p>
+  </div>
+</footer>
+
+<style>
+  footer {
+    border-top: 0.5px solid var(--border-subtle);
+    padding: 28px 0;
+    background: var(--bg-page);
+  }
+  .footer-inner {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .footer-inner p { margin: 0; font-size: 12px; line-height: 1.6; }
+  .small { font-size: 11px; }
+  .sep { padding: 0 6px; color: var(--text-quaternary); }
+  footer a { color: var(--text-secondary); }
+  footer a:hover { color: var(--text-primary); }
+</style>
