@@ -16,4 +16,4 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "safemcp-servers"
-database_id = "24f86147-59a3-4140-9187-49ef65611a9e"
+database_id = "PASTE_DATABASE_ID_HERE"
