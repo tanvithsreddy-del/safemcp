@@ -1,60 +1,292 @@
 ---
 import Base from "../layouts/Base.astro";
+import ScoreBadge from "../components/ScoreBadge.astro";
+import ScoreDistribution from "../components/ScoreDistribution.astro";
 import SearchBox from "../components/SearchBox.astro";
-import ServerRow from "../components/ServerRow.astro";
-import CategoryGrid from "../components/CategoryGrid.astro";
-import FeaturedSlot from "../components/sponsor/FeaturedSlot.astro";
-import { SHOW_SPONSORS } from "../lib/flags";
-import { topServers, allCategories, totalCount } from "../lib/data";
+import {
+  totalCount,
+  categoriesAlphabetical,
+  topServers,
+  allServers,
+} from "../lib/data";
 
 const total = totalCount();
-const topTen = topServers.slice(0, 10);
+const categoryCount = categoriesAlphabetical.length;
+
+// Top 10 by score for the leaderboard.
+const top10 = topServers.slice(0, 10);
+
+// API-key-required share, for the "useful at a glance" stat row.
+const apiKeyRequired = allServers.filter(s => s.requires_api_key === true).length;
+const apiKeyPct = Math.round((apiKeyRequired / Math.max(1, total)) * 100);
+
+// Average score across the corpus.
+const avgScore = Math.round(
+  allServers.reduce((acc, s) => acc + (s.recommended_score || 0), 0) /
+    Math.max(1, total)
+);
+
+// "Featured" categories — show 12 specific categories on the homepage,
+// alphabetical, with "other" and "unknown" forced to the very end of the
+// remaining list (handled in categoriesAlphabetical).
+const featured = categoriesAlphabetical.slice(0, 12);
 ---
+
 <Base
   title="SafeMCP — Directory of Model Context Protocol servers"
-  description={`The largest free directory of Model Context Protocol servers. ${total.toLocaleString()} verified servers, individually categorized and scored.`}
+  description={`${total.toLocaleString()} verified MCP servers, individually categorized into ${categoryCount} categories and scored on five quality signals.`}
 >
   <section class="hero">
-    <h1>The largest free directory of MCP servers.</h1>
-    <p class="lede">{total.toLocaleString()} verified Model Context Protocol servers, individually categorized and scored.</p>
+    <h1 class="hero-title">The largest free directory of MCP servers.</h1>
+    <p class="hero-sub">
+      <span class="num">{total.toLocaleString()}</span> verified Model Context Protocol servers,
+      individually categorized and scored. Updated regularly. No ads, no tracking, no signup.
+    </p>
   </section>
 
-  <div class="stats">
+  <section class="stat-row">
     <div class="stat">
-      <p class="stat-label">Verified servers</p>
-      <p class="stat-value">{total.toLocaleString()}</p>
+      <span class="stat-label">Servers</span>
+      <span class="stat-value mono">{total.toLocaleString()}</span>
     </div>
     <div class="stat">
-      <p class="stat-label">Categories</p>
-      <p class="stat-value">{allCategories.length}</p>
+      <span class="stat-label">Categories</span>
+      <span class="stat-value mono">{categoryCount}</span>
     </div>
     <div class="stat">
-      <p class="stat-label">Individually scored</p>
-      <p class="stat-value">All</p>
+      <span class="stat-label">Avg score</span>
+      <span class="stat-value mono">{avgScore}<span class="stat-unit">/100</span></span>
     </div>
-  </div>
+    <div class="stat">
+      <span class="stat-label">Need API key</span>
+      <span class="stat-value mono">{apiKeyPct}%</span>
+    </div>
+  </section>
 
-  <SearchBox />
+  <section class="search-row">
+    <SearchBox />
+    <p class="search-hint">Press <kbd>/</kbd> to focus search</p>
+  </section>
 
-  <p class="eyebrow">Browse by category</p>
-  <CategoryGrid categories={allCategories} limit={8} />
-  <p style="margin: 12px 0 32px;"><a href="/browse">See all {allCategories.length} categories →</a></p>
+  <section class="two-col">
+    <div>
+      <p class="eyebrow">Browse by category</p>
+      <div class="cat-grid">
+        {featured.map((c) => {
+          const slug = c.slug;
+          const teaseServer = (c.top5 && c.top5[0]) || null;
+          return (
+            <a class="cat-card" href={`/category/${slug}/`}>
+              <div class="cat-card-head">
+                <span class="cat-name">{c.name}</span>
+                <span class="cat-count mono">{c.count.toLocaleString()}</span>
+              </div>
+              {teaseServer && (
+                <p class="cat-tease">
+                  <span class="cat-tease-arrow">→</span>
+                  <span class="cat-tease-name">{teaseServer.owner}/{teaseServer.name}</span>
+                </p>
+              )}
+            </a>
+          );
+        })}
+      </div>
+      <p class="see-all">
+        <a href="/browse/">See all {categoryCount} categories →</a>
+      </p>
+    </div>
+    <ScoreDistribution />
+  </section>
 
-  {SHOW_SPONSORS && <FeaturedSlot />}
-
-  <p class="eyebrow">Top picks</p>
-  <div class="row-list">
-    {topTen.map((s) => <ServerRow server={s} />)}
-  </div>
-  <p style="margin: 12px 0 0;"><a href="/browse">Browse all {total.toLocaleString()} servers →</a></p>
-
-  <p class="disclaimer">
-    The Recommended Score is a composite of confidence, popularity, multi-source presence, discoverability, and category clarity. It is <strong>not a security audit</strong>. Review code before connecting any MCP server.
-  </p>
+  <section class="top-picks">
+    <p class="eyebrow">Top picks</p>
+    <div class="picks">
+      {top10.map((s) => (
+        <a class="pick-row" href={`/s/${s.owner}/${s.name}/`}>
+          <ScoreBadge score={s.recommended_score} />
+          <div class="pick-meta">
+            <span class="pick-name mono">{s.owner}/{s.name}</span>
+            <span class="pick-desc">
+              {s.description || s.primary_function || "—"}
+            </span>
+          </div>
+          <span class="pick-stars mono">★ {(s.stars ?? 0).toLocaleString()}</span>
+        </a>
+      ))}
+    </div>
+  </section>
 </Base>
 
 <style>
-  .hero { margin: 8px 0 20px; }
-  .hero h1 { margin: 0 0 6px; }
-  .lede { color: var(--text-secondary); font-size: 14px; margin: 0; max-width: 60ch; line-height: 1.6; }
+  .hero { margin: 32px 0 24px; }
+  .hero-title {
+    font-size: clamp(28px, 4vw, 40px);
+    line-height: 1.15;
+    letter-spacing: -0.02em;
+    margin: 0 0 14px;
+    max-width: 24ch;
+  }
+  .hero-sub {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    max-width: 64ch;
+    font-size: 15px;
+  }
+  .hero-sub .num {
+    color: var(--text-primary);
+    font-family: var(--font-mono);
+    font-weight: 500;
+  }
+
+  .stat-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 0;
+    margin: 24px 0;
+    border: 0.5px solid var(--border-default);
+    background: var(--bg-surface);
+  }
+  .stat {
+    padding: 16px 18px;
+    border-right: 0.5px solid var(--border-subtle);
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+  .stat:last-child { border-right: none; }
+  .stat-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .stat-value {
+    font-size: 22px;
+    color: var(--text-primary);
+  }
+  .stat-unit {
+    color: var(--text-secondary);
+    font-size: 14px;
+    margin-left: 2px;
+  }
+
+  .search-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin: 24px 0;
+    flex-wrap: wrap;
+  }
+  .search-row :global([data-searchbox]) { flex: 1; min-width: 260px; }
+  .search-hint {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin: 0;
+  }
+  .search-hint kbd {
+    background: var(--bg-surface-2);
+    border: 0.5px solid var(--border-default);
+    padding: 1px 6px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+  }
+
+  .two-col {
+    display: grid;
+    grid-template-columns: 2fr 1fr;
+    gap: 24px;
+    margin: 32px 0;
+  }
+  @media (max-width: 880px) {
+    .two-col { grid-template-columns: 1fr; }
+  }
+
+  .cat-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0;
+    border: 0.5px solid var(--border-default);
+  }
+  .cat-card {
+    padding: 12px 14px;
+    border-right: 0.5px solid var(--border-subtle);
+    border-bottom: 0.5px solid var(--border-subtle);
+    text-decoration: none;
+    color: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    transition: background 0.1s;
+  }
+  .cat-card:nth-child(2n) { border-right: none; }
+  .cat-card:nth-last-child(-n+2) { border-bottom: none; }
+  .cat-card:hover { background: var(--bg-surface-2); }
+  .cat-card-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .cat-name {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    color: var(--text-primary);
+  }
+  .cat-count {
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  .cat-tease {
+    color: var(--text-secondary);
+    font-size: 11px;
+    font-family: var(--font-mono);
+    margin: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .cat-tease-arrow { opacity: 0.6; margin-right: 4px; }
+
+  .see-all { margin-top: 12px; font-size: 13px; }
+  .see-all a { color: var(--link); }
+
+  .top-picks { margin: 32px 0 48px; }
+  .picks {
+    display: flex;
+    flex-direction: column;
+    border: 0.5px solid var(--border-default);
+  }
+  .pick-row {
+    display: grid;
+    grid-template-columns: 56px 1fr auto;
+    align-items: center;
+    gap: 14px;
+    padding: 10px 14px;
+    border-bottom: 0.5px solid var(--border-subtle);
+    text-decoration: none;
+    color: inherit;
+    transition: background 0.1s;
+  }
+  .pick-row:last-child { border-bottom: none; }
+  .pick-row:hover { background: var(--bg-surface-2); }
+  .pick-meta { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+  .pick-name { color: var(--text-primary); font-size: 13px; }
+  .pick-desc {
+    color: var(--text-secondary);
+    font-size: 12px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .pick-stars { color: var(--text-secondary); font-size: 12px; }
 </style>
+
+<script is:inline>
+  // Keyboard: press "/" to focus the search box (skip if user is already typing).
+  document.addEventListener("keydown", function (e) {
+    if (e.key !== "/") return;
+    const tag = (e.target && e.target.tagName) || "";
+    if (tag === "INPUT" || tag === "TEXTAREA" || (e.target && e.target.isContentEditable)) return;
+    const input = document.querySelector("[data-searchbox] input");
+    if (input) { e.preventDefault(); input.focus(); }
+  });
+</script>

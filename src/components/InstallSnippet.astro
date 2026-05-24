@@ -1,0 +1,118 @@
+---
+import type { Server } from "../lib/data";
+
+interface Props { server: Server }
+const { server } = Astro.props;
+
+const repoUrl = server.repo_url;
+const slug = `${server.owner}/${server.name}`;
+const runtime = (server.runtime || "").toLowerCase();
+
+// Best-effort install hint based on runtime. We don't know exact package names
+// for most servers, so we show a clone-and-explore path plus a Claude Desktop
+// config template the user fills in after reading the project README.
+const runtimeHint =
+  runtime === "node" || runtime === "typescript" || runtime === "javascript"
+    ? "Node.js"
+    : runtime === "python"
+    ? "Python (uv or pip)"
+    : runtime === "go"
+    ? "Go"
+    : runtime === "rust"
+    ? "Rust (cargo)"
+    : runtime === "docker"
+    ? "Docker"
+    : null;
+
+const command =
+  runtime === "node" || runtime === "typescript" || runtime === "javascript"
+    ? "node"
+    : runtime === "python"
+    ? "uvx"
+    : "<command>";
+
+const args =
+  runtime === "node" || runtime === "typescript" || runtime === "javascript"
+    ? `["-y", "<package-name>"]`
+    : runtime === "python"
+    ? `["<package-name>"]`
+    : `["<args>"]`;
+
+const cloneBlock = `# 1. Clone the repository
+git clone ${repoUrl}
+cd ${server.name}
+
+# 2. Follow the project's README for setup
+#    (look for installation, env vars, and run commands)`;
+
+const configBlock = `// In your Claude Desktop config (~/.../claude_desktop_config.json):
+{
+  "mcpServers": {
+    "${server.name}": {
+      "command": "${command}",
+      "args": ${args}
+    }
+  }
+}`;
+---
+
+<section class="install-snippet">
+  <p class="eyebrow">Install</p>
+  {runtimeHint && (
+    <p class="install-hint">
+      Runtime detected: <span class="mono">{runtimeHint}</span>
+    </p>
+  )}
+
+  <div class="install-block">
+    <p class="block-label">1. Clone and review</p>
+    <pre><code>{cloneBlock}</code></pre>
+  </div>
+
+  <div class="install-block">
+    <p class="block-label">2. Claude Desktop config (template)</p>
+    <pre><code>{configBlock}</code></pre>
+    <p class="block-note">
+      Replace <span class="mono">&lt;package-name&gt;</span> with the actual command from the
+      project's README. Not every server uses the same install pattern.
+    </p>
+  </div>
+</section>
+
+<style>
+  .install-snippet { margin: 24px 0; }
+  .install-hint {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 4px 0 16px;
+  }
+  .install-block { margin-bottom: 16px; }
+  .block-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 6px;
+  }
+  .install-snippet pre {
+    background: var(--bg-surface-2);
+    border: 0.5px solid var(--border-subtle);
+    padding: 12px 14px;
+    border-radius: 0;
+    overflow-x: auto;
+    margin: 0;
+  }
+  .install-snippet code {
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: var(--text-primary);
+    white-space: pre;
+  }
+  .block-note {
+    color: var(--text-secondary);
+    font-size: 12px;
+    margin: 6px 0 0;
+    line-height: 1.5;
+  }
+  .mono { font-family: var(--font-mono); }
+</style>

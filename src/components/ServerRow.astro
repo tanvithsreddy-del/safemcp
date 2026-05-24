@@ -9,8 +9,21 @@ const { server } = Astro.props;
 const href = `/s/${server.owner}/${server.name}/`;
 const desc = server.primary_function || server.description || "";
 const stars = (server.stars ?? 0).toLocaleString();
+const score = server.recommended_score ?? 0;
+const runtime = (server.runtime || "").toLowerCase();
+const apikey = server.requires_api_key === true ? "1" : (server.requires_api_key === false ? "0" : "");
+const sortName = `${server.owner}/${server.name}`;
 ---
-<a href={href} class="row">
+<a
+  href={href}
+  class="row"
+  data-row="server"
+  data-runtime={runtime}
+  data-apikey={apikey}
+  data-score={score}
+  data-stars={server.stars ?? 0}
+  data-name={sortName}
+>
   <ScoreBadge score={server.recommended_score} />
   <div>
     <p class="repo">{server.owner}<span class="slash">/</span>{server.name}</p>

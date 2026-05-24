@@ -1,0 +1,79 @@
+---
+import { scoreDistribution } from "../lib/data";
+
+const dist = scoreDistribution();
+const max = Math.max(...dist.map(d => d.count));
+
+const tierClass = (b: string) => {
+  if (b === "80-100") return "score-high";
+  if (b === "60-79")  return "score-mid";
+  if (b === "40-59")  return "score-low";
+  return "score-base";
+};
+---
+
+<div class="score-dist">
+  <p class="eyebrow">Score distribution</p>
+  <div class="dist-bars">
+    {dist.map(d => (
+      <div class="dist-row">
+        <span class="dist-bucket">{d.bucket}</span>
+        <div class="dist-bar-track">
+          <div
+            class={`dist-bar ${tierClass(d.bucket)}`}
+            style={`width: ${max ? (d.count / max) * 100 : 0}%;`}
+          ></div>
+        </div>
+        <span class="dist-count">{d.count.toLocaleString()}</span>
+        <span class="dist-pct">{d.pct}%</span>
+      </div>
+    ))}
+  </div>
+</div>
+
+<style>
+  .score-dist {
+    padding: 16px 18px;
+    border: 0.5px solid var(--border-default);
+    background: var(--bg-surface);
+  }
+  .dist-bars {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    margin-top: 8px;
+  }
+  .dist-row {
+    display: grid;
+    grid-template-columns: 56px 1fr 64px 48px;
+    align-items: center;
+    gap: 12px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+  }
+  .dist-bucket {
+    color: var(--text-secondary);
+  }
+  .dist-bar-track {
+    height: 6px;
+    background: var(--bg-surface-2);
+    border-radius: 0;
+    overflow: hidden;
+  }
+  .dist-bar {
+    height: 100%;
+    transition: width 0.4s ease;
+  }
+  .dist-bar.score-high { background: var(--tier-high-bg); }
+  .dist-bar.score-mid  { background: var(--tier-mid-bg); }
+  .dist-bar.score-low  { background: var(--tier-low-bg); }
+  .dist-bar.score-base { background: var(--tier-base-bg); }
+  .dist-count {
+    color: var(--text-primary);
+    text-align: right;
+  }
+  .dist-pct {
+    color: var(--text-secondary);
+    text-align: right;
+  }
+</style>

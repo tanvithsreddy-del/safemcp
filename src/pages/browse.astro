@@ -3,32 +3,39 @@ import Base from "../layouts/Base.astro";
 import SearchBox from "../components/SearchBox.astro";
 import ServerRow from "../components/ServerRow.astro";
 import CategoryGrid from "../components/CategoryGrid.astro";
-import { topServers, allCategories, totalCount } from "../lib/data";
+import FilterBar from "../components/FilterBar.astro";
+import {
+  topServers,
+  categoriesAlphabetical,
+  totalCount,
+  runtimeCounts,
+} from "../lib/data";
 
-// Browse shows top 100 by default. Use search/category for the long tail.
 const total = totalCount();
-const visible = topServers.slice(0, 100);
+const visible = topServers.slice(0, 200); // give the filter UI more to work with
+const runtimes = runtimeCounts().slice(0, 8).map(r => r.runtime).filter(r => r && r !== "unknown");
 ---
-<Base title="Browse — SafeMCP" description={`Browse ${total.toLocaleString()} verified MCP servers.`}>
+<Base title="Browse — SafeMCP" description={`Browse ${total.toLocaleString()} verified MCP servers with filters for runtime, API key, score, and sort.`}>
   <section style="margin-bottom: 20px;">
     <h1>Browse</h1>
     <p class="muted" style="margin: 4px 0 0; font-size: 14px;">
-      {total.toLocaleString()} verified servers across {allCategories.length} categories.
+      {total.toLocaleString()} verified servers across {categoriesAlphabetical.length} categories.
     </p>
   </section>
 
   <SearchBox />
 
-  <p class="eyebrow">All categories</p>
-  <CategoryGrid categories={allCategories} />
+  <p class="eyebrow" style="margin-top: 32px;">All categories</p>
+  <CategoryGrid categories={categoriesAlphabetical} />
 
-  <p class="eyebrow" style="margin-top: 32px;">Top 100 overall</p>
-  <div class="row-list">
+  <p class="eyebrow" style="margin-top: 32px;">Top 200 overall</p>
+  <FilterBar runtimes={runtimes} />
+  <div class="row-list" data-server-list>
     {visible.map((s) => <ServerRow server={s} />)}
   </div>
 
   <p style="margin: 16px 0 0;" class="muted">
-    Showing the top 100 by score across all categories.
-    Use search or a category page to find the long tail.
+    Showing the top 200 by score across all categories. Use the filter bar to narrow, or
+    open a category page for the full list within that category.
   </p>
 </Base>

@@ -1,6 +1,7 @@
 ---
 import Base from "../../layouts/Base.astro";
 import ServerRow from "../../components/ServerRow.astro";
+import FilterBar from "../../components/FilterBar.astro";
 import FeaturedSlot from "../../components/sponsor/FeaturedSlot.astro";
 import SponsorCTA from "../../components/sponsor/SponsorCTA.astro";
 import { SHOW_SPONSORS } from "../../lib/flags";
@@ -16,6 +17,14 @@ export async function getStaticPaths() {
 const { slug } = Astro.params;
 const { category } = Astro.props;
 const servers = serversByCategory(slug!);
+
+// Runtimes present in THIS category, for the filter dropdown.
+const runtimeSet = new Set<string>();
+for (const s of servers) {
+  const r = (s.runtime || "").toLowerCase();
+  if (r && r !== "unknown") runtimeSet.add(r);
+}
+const runtimes = Array.from(runtimeSet).sort();
 ---
 <Base
   title={`${category.name} MCP servers — SafeMCP`}
@@ -34,7 +43,9 @@ const servers = serversByCategory(slug!);
     />
   )}
 
-  <div class="row-list" style="margin-top: 20px;">
+  <FilterBar runtimes={runtimes} />
+
+  <div class="row-list" data-server-list>
     {servers.map((s) => <ServerRow server={s} />)}
   </div>
 
