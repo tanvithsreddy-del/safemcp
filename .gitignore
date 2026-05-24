@@ -9,3 +9,9 @@ dist/
 # They're generated locally by `npm run export-data` and need to be
 # present in the repo for Cloudflare Pages builds (which don't have
 # access to your state.db). Re-run export-data and commit when data changes.
+
+# wrangler files
+.wrangler
+.dev.vars*
+!.dev.vars.example
+!.env.example
