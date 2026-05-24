@@ -2,59 +2,209 @@
 import Base from "../layouts/Base.astro";
 import { totalCount, allCategories } from "../lib/data";
 const total = totalCount();
+const numCats = allCategories.length;
 ---
-<Base title="About — SafeMCP" description="What SafeMCP is, how the Recommended Score works, and what it doesn't measure.">
+<Base
+  title="About — SafeMCP"
+  description={`SafeMCP indexes ${total.toLocaleString()} MCP servers across ${numCats} categories. What MCP is, how to use it, and how this directory is built.`}
+>
   <h1>About SafeMCP</h1>
 
-  <section style="margin: 16px 0 32px;">
+  <section>
     <p>
-      SafeMCP is the largest free directory of Model Context Protocol servers.
-      As of today we list <strong>{total.toLocaleString()}</strong> verified MCP servers across <strong>{allCategories.length}</strong> categories, individually categorized and scored.
+      SafeMCP is a directory of every <a href="#what-is-mcp">Model Context Protocol</a> server we can find on the public internet.
+      As of today: <strong>{total.toLocaleString()} verified servers</strong> across <strong>{numCats} categories</strong>, each individually classified and scored 0&ndash;100.
+      Free, no signup, no rate limit.
     </p>
     <p>
-      Every server in this directory has been individually verified, categorized against a {allCategories.length}-category taxonomy, and scored on five quality signals.
-    </p>
-    <p>
-      Bigger than Glama (22,775), mcp.so (~21,000), and PulseMCP (~15,700).
+      The site is built and maintained by one person. It updates as new servers are released and existing repos change. There are no ads. Nothing is paid placement. The category and score for every server is computed from public data, the same way for everyone.
     </p>
   </section>
 
-  <h2>The Recommended Score</h2>
-  <p style="margin: 8px 0 12px;">
-    A composite 0-100 quality signal computed from five components:
+  <h2>How SafeMCP compares</h2>
+  <p>
+    There are a handful of other MCP directories. The honest comparison, by raw server count:
+  </p>
+  <table class="compare">
+    <thead>
+      <tr><th>Directory</th><th class="num">Servers</th><th>Free</th><th>Notes</th></tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td><strong>SafeMCP</strong></td>
+        <td class="num"><strong>{total.toLocaleString()}</strong></td>
+        <td>Yes</td>
+        <td>{numCats} categories. Every server has its own page with score breakdown.</td>
+      </tr>
+      <tr>
+        <td>Glama</td>
+        <td class="num">23,968</td>
+        <td>Partial</td>
+        <td>Most servers uncategorized but hidden from the homepage.</td>
+      </tr>
+      <tr>
+        <td>mcp.so</td>
+        <td class="num">~21,000</td>
+        <td>Yes</td>
+        <td>Aggregator-style listing, light per-server detail.</td>
+      </tr>
+      <tr>
+        <td>PulseMCP</td>
+        <td class="num">~15,700</td>
+        <td>Yes</td>
+        <td>Curated and editorial, smaller in scope.</td>
+      </tr>
+    </tbody>
+  </table>
+  <p class="dim small">
+    Counts as last cross-checked. We list the long tail honestly. ~25% of our index falls into the &ldquo;other&rdquo; bucket, and we say so on the home page instead of hiding it.
+  </p>
+
+  <h2 id="what-is-mcp">What is an MCP server?</h2>
+  <p>
+    <strong>MCP (Model Context Protocol)</strong> is an open standard from Anthropic, launched in November 2024 and now supported by Claude Desktop, Cursor, Cline, Windsurf, Zed, OpenAI's Agents SDK, and a growing list of clients. It defines a uniform way for a language model to discover and call external capabilities &mdash; reading files, querying a database, hitting an API, controlling a browser, sending an email.
+  </p>
+  <p>
+    An <strong>MCP server</strong> is a small program that exposes one of those capabilities. A Postgres MCP server lets a model run SQL queries. A GitHub MCP server lets a model open issues and read PRs. A filesystem MCP server lets a model read and write files in a directory you've allowed.
+  </p>
+  <p>
+    Think of MCP as USB-C for AI: a standard plug. Before MCP, every LLM tool integration was custom code. With MCP, any compliant client can use any compliant server.
+  </p>
+
+  <h2>Why use MCP servers</h2>
+  <p>
+    The point of MCP is to give a language model access to the same tools <em>you</em> have, in a controlled way:
+  </p>
+  <ul>
+    <li><strong>Local file access</strong> &mdash; read and edit files in a specific directory without copy-pasting into a chat.</li>
+    <li><strong>Real data</strong> &mdash; query your own Postgres / SQLite / BigQuery instead of asking the model to guess from training data.</li>
+    <li><strong>Tools you already use</strong> &mdash; GitHub, Linear, Notion, Slack, Sentry, Stripe, Figma. The model can take actions on your behalf instead of just describing them.</li>
+    <li><strong>Composition</strong> &mdash; one client can connect to many servers simultaneously, so a single model session can read a Notion doc, query a database, and write the result to a file.</li>
+  </ul>
+
+  <h2>How to use an MCP server</h2>
+  <p>
+    Three steps. The specifics depend on your client.
+  </p>
+  <ol>
+    <li>
+      <strong>Pick a server.</strong> Browse this directory or jump to a category. Each server's page links to its source repo and a ready-to-paste install snippet.
+    </li>
+    <li>
+      <strong>Install it.</strong> Most MCP servers ship as npm packages or Docker images. The detail page on this site has the exact command. For Claude Desktop, the install is usually just adding a JSON block to <code class="mono">claude_desktop_config.json</code> &mdash; the snippet on the detail page is the format you need.
+    </li>
+    <li>
+      <strong>Restart your client and connect.</strong> Claude Desktop, Cursor, and Cline pick up new servers on restart. Test by asking the model what tools it can see.
+    </li>
+  </ol>
+  <p class="dim small">
+    Many MCP servers require an API key or auth credential (a GitHub token, OpenAI key, etc). The detail page flags <span class="mono">requires API key</span> when that's known.
+  </p>
+
+  <h2 id="score">The Recommended Score</h2>
+  <p>
+    A composite 0&ndash;100 quality signal computed from five components:
   </p>
   <table class="components">
     <tr><td class="mono">25</td><td>Verification confidence</td><td class="muted">At our discretion</td></tr>
     <tr><td class="mono">25</td><td>Repository popularity</td><td class="muted">GitHub stars (logarithmic)</td></tr>
     <tr><td class="mono">15</td><td>Multi-source presence</td><td class="muted">Appears in multiple aggregators</td></tr>
     <tr><td class="mono">15</td><td>Discoverability</td><td class="muted">Description quality and fork count</td></tr>
-    <tr><td class="mono">20</td><td>Category clarity</td><td class="muted">Specific category vs. generic 'other'</td></tr>
+    <tr><td class="mono">20</td><td>Category clarity</td><td class="muted">Specific category vs. generic &lsquo;other&rsquo;</td></tr>
   </table>
 
-  <h2 style="margin-top: 32px;">What the score is NOT</h2>
-  <p style="margin: 8px 0 0;">
-    The Recommended Score reflects metadata quality and popularity. It does <strong>not</strong> measure:
-  </p>
+  <h2>What the score is NOT</h2>
+  <p>The Recommended Score reflects metadata quality and popularity. It does <strong>not</strong> measure:</p>
   <ul>
     <li>Code quality or maintainability</li>
     <li>Security vulnerabilities or supply-chain safety</li>
     <li>Malware or malicious behavior</li>
-    <li>License compatibility</li>
+    <li>License compatibility with your use case</li>
   </ul>
   <p>
-    Review the code before connecting any MCP server to a tool that handles your data.
+    <strong>Review the code before connecting any MCP server to a tool that handles your data.</strong> A server exists in this directory because we found it on the public internet, not because it's safe.
   </p>
 
-  <h2 style="margin-top: 32px;">Contact</h2>
-  <p style="margin: 8px 0 0;">
-    Email <a href="mailto:hello@safemcp.info">hello@safemcp.info</a> for corrections, additions, removal requests, or sponsorship inquiries.
+  <h2>How this directory is built</h2>
+  <p>
+    A scanner runs continuously against GitHub, aggregator sites, and known MCP-server lists. New candidates are passed through an LLM classifier that confirms whether a repo actually implements MCP (vs. just mentioning it), assigns one of {numCats} categories, and extracts a short description and primary function. Servers that fail verification are dropped.
   </p>
+  <p>
+    The {numCats}-category taxonomy is hand-designed to be specific enough to be useful (e.g. <span class="mono">database_sql</span>, <span class="mono">browser_automation</span>) and stable enough that you can browse it. Servers that don't fit any specific category land in <span class="mono">other</span> &mdash; not hidden.
+  </p>
+
+  <h2>Honest limitations</h2>
+  <ul>
+    <li>The score is a metadata signal, not a security audit. Don't treat a high score as a safety guarantee.</li>
+    <li>Server descriptions come from repository metadata. If a server has a sparse README, our description will be sparse.</li>
+    <li>We don't run servers in a sandbox to test that they actually work. We verify they look like MCP servers, not that they function correctly.</li>
+    <li>The index is rebuilt on a regular cadence. Newly-released servers will appear within days, not minutes.</li>
+    <li>Single maintainer. No SLA. If something is wrong, email and we'll fix it.</li>
+  </ul>
+
+  <h2>Contact &amp; corrections</h2>
+  <p>
+    Email <a href="mailto:hello@safemcp.info">hello@safemcp.info</a> for:
+  </p>
+  <ul>
+    <li>Removal requests (your repo, your call)</li>
+    <li>Corrections to category, description, or any other field</li>
+    <li>New servers we missed</li>
+    <li>Sponsorship inquiries</li>
+    <li>Anything else</li>
+  </ul>
 </Base>
 
 <style>
-  p { color: var(--text-primary); line-height: 1.7; max-width: 70ch; }
+  h1 { margin-bottom: 8px; }
+  h2 {
+    margin-top: 36px;
+    margin-bottom: 8px;
+    font-size: 17px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+  }
+  p, li { color: var(--text-primary); line-height: 1.65; max-width: 70ch; font-size: 14px; }
+  p { margin: 8px 0 12px; }
+  ul, ol { padding-left: 22px; max-width: 70ch; }
+  ul li, ol li { margin-bottom: 4px; }
+  .dim { color: var(--text-secondary); }
+  .small { font-size: 12px; }
   .muted { color: var(--text-secondary); }
-  ul { padding-left: 20px; color: var(--text-primary); line-height: 1.8; max-width: 70ch; }
+  code.mono, span.mono { font-family: var(--font-mono); font-size: 12px; }
+  a { color: var(--link); }
+  a:hover { color: var(--text-primary); }
+
+  /* Comparison table */
+  table.compare {
+    border-collapse: collapse;
+    margin: 12px 0 8px;
+    font-size: 13px;
+    width: 100%;
+    max-width: 70ch;
+  }
+  table.compare th, table.compare td {
+    padding: 8px 12px;
+    border-bottom: 0.5px solid var(--border-subtle);
+    vertical-align: top;
+    text-align: left;
+  }
+  table.compare th {
+    color: var(--text-tertiary);
+    font-weight: 500;
+    border-bottom-color: var(--border-default);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  table.compare td.num, table.compare th.num {
+    text-align: right;
+    font-family: var(--font-mono);
+    color: var(--text-primary);
+  }
+  table.compare th.num { color: var(--text-tertiary); }
+
+  /* Score breakdown table (unchanged from v1) */
   table.components {
     border-collapse: collapse;
     margin: 12px 0;
