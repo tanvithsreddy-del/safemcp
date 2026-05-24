@@ -1,27 +1,41 @@
 ---
-// Filter bar — pure HTML form with no JS. The actual filtering happens on
-// the page that includes this component, via a vanilla <script> block.
+// Filter bar — text search + faceted filters + sort. Client-side, no JS framework.
 //
 // Usage:
 //   <FilterBar runtimes={["node","python","go"]} />
-// Page that uses this MUST have rows marked with data-row=server attributes:
-//   data-runtime, data-apikey ("1"|"0"), data-score (number).
+// The page including this MUST have a row container marked with data-server-list,
+// containing <a data-row="server" data-runtime data-apikey data-score data-stars data-name>.
 //
 interface Props {
   runtimes?: string[];
   showApiKey?: boolean;
   showMinScore?: boolean;
   showSort?: boolean;
+  showText?: boolean;
 }
 const {
   runtimes = [],
   showApiKey = true,
   showMinScore = true,
   showSort = true,
+  showText = true,
 } = Astro.props;
 ---
 
 <div class="filter-bar" data-filter-bar>
+  {showText && (
+    <div class="filter-group filter-group-wide">
+      <label class="filter-label">Search</label>
+      <input
+        type="search"
+        data-filter="text"
+        placeholder="name, owner, description…"
+        aria-label="Filter by text"
+        autocomplete="off"
+      />
+    </div>
+  )}
+
   {runtimes.length > 0 && (
     <div class="filter-group">
       <label class="filter-label">Runtime</label>
@@ -66,61 +80,89 @@ const {
     </div>
   )}
 
-  <button type="button" class="filter-reset" data-filter-reset>Reset</button>
+  <button type="button" class="filter-btn filter-btn-primary" data-filter-search>Search</button>
+  <button type="button" class="filter-btn" data-filter-reset>Reset</button>
   <span class="filter-count" data-filter-count></span>
 </div>
 
 <script is:inline>
   (function () {
-    const bar = document.querySelector("[data-filter-bar]");
-    if (!bar) return;
+    function init() {
+      const bar = document.querySelector("[data-filter-bar]");
+      if (!bar) return;
+      const list = document.querySelector("[data-server-list]");
+      if (!list) return;
 
-    const list = document.querySelector("[data-server-list]");
-    const counter = bar.querySelector("[data-filter-count]");
-    if (!list) return;
+      const counter = bar.querySelector("[data-filter-count]");
+      const rows = Array.from(list.querySelectorAll('[data-row="server"]'));
 
-    const rows = Array.from(list.querySelectorAll("[data-row=server]"));
+      function apply() {
+        const text = (bar.querySelector('[data-filter="text"]')?.value || "").trim().toLowerCase();
+        const runtime = bar.querySelector('[data-filter="runtime"]')?.value || "";
+        const apikey = bar.querySelector('[data-filter="apikey"]')?.value || "";
+        const minScore = parseInt(bar.querySelector('[data-filter="minscore"]')?.value || "0", 10);
+        const sortBy = bar.querySelector('[data-filter="sort"]')?.value || "score";
 
-    function apply() {
-      const runtime = bar.querySelector('[data-filter="runtime"]')?.value || "";
-      const apikey  = bar.querySelector('[data-filter="apikey"]')?.value || "";
-      const minScore = parseInt(bar.querySelector('[data-filter="minscore"]')?.value || "0", 10);
-      const sortBy = bar.querySelector('[data-filter="sort"]')?.value || "score";
+        const filtered = rows.filter((r) => {
+          if (runtime && (r.dataset.runtime || "") !== runtime) return false;
+          if (apikey !== "" && (r.dataset.apikey || "") !== apikey) return false;
+          const s = parseInt(r.dataset.score || "0", 10);
+          if (s < minScore) return false;
+          if (text) {
+            // Use textContent so we match name + owner + description in the rendered row
+            const hay = (r.dataset.name + " " + (r.textContent || "")).toLowerCase();
+            if (!hay.includes(text)) return false;
+          }
+          return true;
+        });
 
-      const filtered = rows.filter(r => {
-        if (runtime && (r.dataset.runtime || "") !== runtime) return false;
-        if (apikey !== "" && (r.dataset.apikey || "") !== apikey) return false;
-        const s = parseInt(r.dataset.score || "0", 10);
-        if (s < minScore) return false;
-        return true;
-      });
+        const sorted = filtered.slice().sort((a, b) => {
+          if (sortBy === "stars") {
+            return parseInt(b.dataset.stars || "0", 10) - parseInt(a.dataset.stars || "0", 10);
+          }
+          if (sortBy === "name") {
+            return (a.dataset.name || "").localeCompare(b.dataset.name || "");
+          }
+          return parseInt(b.dataset.score || "0", 10) - parseInt(a.dataset.score || "0", 10);
+        });
 
-      const sorted = filtered.slice().sort((a, b) => {
-        if (sortBy === "stars") {
-          return parseInt(b.dataset.stars || "0", 10) - parseInt(a.dataset.stars || "0", 10);
+        // Hide all rows, then re-append matching ones in order.
+        for (const r of rows) r.style.display = "none";
+        for (const r of sorted) {
+          r.style.display = "";
+          list.appendChild(r);
         }
-        if (sortBy === "name") {
-          return (a.dataset.name || "").localeCompare(b.dataset.name || "");
-        }
-        return parseInt(b.dataset.score || "0", 10) - parseInt(a.dataset.score || "0", 10);
-      });
 
-      // Hide all rows, then re-append matching ones in order.
-      for (const r of rows) r.style.display = "none";
-      for (const r of sorted) {
-        r.style.display = "";
-        list.appendChild(r);
+        if (counter) counter.textContent = `${sorted.length.toLocaleString()} / ${rows.length.toLocaleString()}`;
       }
 
-      if (counter) counter.textContent = `${sorted.length.toLocaleString()} / ${rows.length.toLocaleString()}`;
+      // Apply live as the user types or changes any filter.
+      bar.addEventListener("input", apply);
+      bar.addEventListener("change", apply);
+
+      // Explicit Search button (also covers Enter from the text input).
+      bar.querySelector("[data-filter-search]")?.addEventListener("click", apply);
+      bar.querySelector('[data-filter="text"]')?.addEventListener("keydown", (e) => {
+        if (e.key === "Enter") { e.preventDefault(); apply(); }
+      });
+
+      // Reset clears all filters and re-applies.
+      bar.querySelector("[data-filter-reset]")?.addEventListener("click", () => {
+        bar.querySelectorAll("select").forEach((s) => { s.selectedIndex = 0; });
+        const t = bar.querySelector('[data-filter="text"]');
+        if (t) t.value = "";
+        apply();
+      });
+
+      // First render.
+      apply();
     }
 
-    bar.addEventListener("change", apply);
-    bar.querySelector("[data-filter-reset]")?.addEventListener("click", () => {
-      bar.querySelectorAll("select").forEach(s => { s.selectedIndex = 0; });
-      apply();
-    });
-    apply();
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", init);
+    } else {
+      init();
+    }
   })();
 </script>
 
@@ -129,7 +171,7 @@ const {
     display: flex;
     flex-wrap: wrap;
     align-items: end;
-    gap: 16px;
+    gap: 12px 16px;
     padding: 14px 16px;
     border: 0.5px solid var(--border-default);
     background: var(--bg-surface);
@@ -140,13 +182,15 @@ const {
     flex-direction: column;
     gap: 4px;
   }
+  .filter-group-wide { flex: 1 1 220px; min-width: 200px; }
   .filter-label {
     color: var(--text-secondary);
     font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
-  .filter-bar select {
+  .filter-bar select,
+  .filter-bar input[type="search"] {
     background: var(--bg-page);
     border: 0.5px solid var(--border-default);
     color: var(--text-primary);
@@ -156,25 +200,38 @@ const {
     min-width: 110px;
     border-radius: 0;
   }
-  .filter-bar select:hover { border-color: var(--border-strong); }
-  .filter-bar select:focus {
+  .filter-bar input[type="search"] { min-width: 220px; width: 100%; }
+  .filter-bar select:hover,
+  .filter-bar input[type="search"]:hover { border-color: var(--border-strong); }
+  .filter-bar select:focus,
+  .filter-bar input[type="search"]:focus {
     outline: none;
     border-color: var(--link);
   }
-  .filter-reset {
+  .filter-btn {
     background: transparent;
     border: 0.5px solid var(--border-default);
     color: var(--text-secondary);
     font-family: var(--font-mono);
     font-size: 12px;
-    padding: 7px 12px;
+    padding: 7px 14px;
     cursor: pointer;
     border-radius: 0;
     align-self: end;
   }
-  .filter-reset:hover {
+  .filter-btn:hover {
     color: var(--text-primary);
     border-color: var(--border-strong);
+  }
+  .filter-btn-primary {
+    background: var(--text-primary);
+    color: var(--bg-page);
+    border-color: var(--text-primary);
+  }
+  .filter-btn-primary:hover {
+    background: var(--text-primary);
+    color: var(--bg-page);
+    opacity: 0.85;
   }
   .filter-count {
     margin-left: auto;
@@ -182,5 +239,6 @@ const {
     color: var(--text-secondary);
     font-family: var(--font-mono);
     font-size: 12px;
+    padding-bottom: 8px;
   }
 </style>

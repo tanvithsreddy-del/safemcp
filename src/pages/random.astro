@@ -1,0 +1,41 @@
+---
+import Base from "../layouts/Base.astro";
+import { topServers } from "../lib/data";
+
+// Inline the (owner, name) pairs for the top 1000 — about 30KB.
+// Picked client-side so each visit goes to a different server.
+const pool = topServers.slice(0, 1000).map((s) => ({ o: s.owner, n: s.name }));
+const poolJson = JSON.stringify(pool);
+---
+<Base title="Random server — SafeMCP" description="Open a random high-scoring MCP server.">
+  <section class="random-card">
+    <h1>Rolling the dice…</h1>
+    <p>Sending you to a random top-scoring MCP server.</p>
+    <p class="muted small">If nothing happens, <a href="/browse/">browse the directory</a>.</p>
+  </section>
+
+  <script is:inline set:html={`
+    (function () {
+      try {
+        const pool = ${poolJson};
+        const pick = pool[Math.floor(Math.random() * pool.length)];
+        if (pick) {
+          window.location.replace("/s/" + pick.o + "/" + pick.n + "/");
+        }
+      } catch (e) {
+        // Fall through to the visible link.
+      }
+    })();
+  `} />
+</Base>
+
+<style>
+  .random-card {
+    margin: 64px auto;
+    max-width: 520px;
+    text-align: center;
+  }
+  .random-card h1 { font-size: 22px; margin: 0 0 12px; }
+  .random-card p { color: var(--text-secondary); margin: 4px 0; line-height: 1.6; }
+  .random-card .small { font-size: 12px; margin-top: 16px; }
+</style>

@@ -5,12 +5,8 @@ interface Props { server: Server }
 const { server } = Astro.props;
 
 const repoUrl = server.repo_url;
-const slug = `${server.owner}/${server.name}`;
 const runtime = (server.runtime || "").toLowerCase();
 
-// Best-effort install hint based on runtime. We don't know exact package names
-// for most servers, so we show a clone-and-explore path plus a Claude Desktop
-// config template the user fills in after reading the project README.
 const runtimeHint =
   runtime === "node" || runtime === "typescript" || runtime === "javascript"
     ? "Node.js"
@@ -66,18 +62,59 @@ const configBlock = `// In your Claude Desktop config (~/.../claude_desktop_conf
 
   <div class="install-block">
     <p class="block-label">1. Clone and review</p>
-    <pre><code>{cloneBlock}</code></pre>
+    <div class="code-wrap">
+      <pre><code data-copy-source>{cloneBlock}</code></pre>
+      <button class="copy-btn" data-copy-btn type="button" aria-label="Copy">Copy</button>
+    </div>
   </div>
 
   <div class="install-block">
     <p class="block-label">2. Claude Desktop config (template)</p>
-    <pre><code>{configBlock}</code></pre>
+    <div class="code-wrap">
+      <pre><code data-copy-source>{configBlock}</code></pre>
+      <button class="copy-btn" data-copy-btn type="button" aria-label="Copy">Copy</button>
+    </div>
     <p class="block-note">
       Replace <span class="mono">&lt;package-name&gt;</span> with the actual command from the
       project's README. Not every server uses the same install pattern.
     </p>
   </div>
 </section>
+
+<script is:inline>
+  (function () {
+    function attach() {
+      document.querySelectorAll("[data-copy-btn]").forEach((btn) => {
+        if (btn.dataset.bound) return;
+        btn.dataset.bound = "1";
+        btn.addEventListener("click", async () => {
+          const wrap = btn.closest(".code-wrap");
+          const code = wrap && wrap.querySelector("[data-copy-source]");
+          if (!code) return;
+          const text = code.textContent || "";
+          try {
+            await navigator.clipboard.writeText(text);
+            const original = btn.textContent;
+            btn.textContent = "Copied";
+            btn.classList.add("copied");
+            setTimeout(() => {
+              btn.textContent = original;
+              btn.classList.remove("copied");
+            }, 1400);
+          } catch (e) {
+            btn.textContent = "Press ⌘C";
+            setTimeout(() => { btn.textContent = "Copy"; }, 1400);
+          }
+        });
+      });
+    }
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", attach);
+    } else {
+      attach();
+    }
+  })();
+</script>
 
 <style>
   .install-snippet { margin: 24px 0; }
@@ -94,6 +131,7 @@ const configBlock = `// In your Claude Desktop config (~/.../claude_desktop_conf
     letter-spacing: 0.05em;
     margin: 0 0 6px;
   }
+  .code-wrap { position: relative; }
   .install-snippet pre {
     background: var(--bg-surface-2);
     border: 0.5px solid var(--border-subtle);
@@ -107,6 +145,30 @@ const configBlock = `// In your Claude Desktop config (~/.../claude_desktop_conf
     font-size: 12px;
     color: var(--text-primary);
     white-space: pre;
+  }
+  .copy-btn {
+    position: absolute;
+    top: 8px;
+    right: 8px;
+    background: var(--bg-page);
+    border: 0.5px solid var(--border-default);
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+    font-size: 11px;
+    padding: 3px 8px;
+    cursor: pointer;
+    border-radius: 0;
+    opacity: 0;
+    transition: opacity 0.12s;
+  }
+  .code-wrap:hover .copy-btn,
+  .copy-btn:focus { opacity: 1; }
+  .copy-btn:hover { color: var(--text-primary); border-color: var(--border-strong); }
+  .copy-btn.copied {
+    background: var(--tier-high-bg);
+    color: var(--tier-high-fg);
+    border-color: var(--tier-high-bg);
+    opacity: 1;
   }
   .block-note {
     color: var(--text-secondary);

@@ -1,0 +1,56 @@
+---
+import Base from "../layouts/Base.astro";
+import SearchBox from "../components/SearchBox.astro";
+import { totalCount } from "../lib/data";
+const total = totalCount();
+---
+<Base title="Not found — SafeMCP" description="That page doesn't exist on SafeMCP.">
+  <section class="four-oh-four">
+    <p class="code mono">404</p>
+    <h1>That page doesn't exist.</h1>
+    <p class="muted">
+      The URL you followed didn't match any of the {total.toLocaleString()} servers, categories, or pages on SafeMCP.
+    </p>
+
+    <div class="search-wrap">
+      <SearchBox />
+    </div>
+
+    <div class="links">
+      <a href="/">Home</a>
+      <span class="dim">·</span>
+      <a href="/browse/">Browse all categories</a>
+      <span class="dim">·</span>
+      <a href="/random/">Try a random server</a>
+    </div>
+  </section>
+</Base>
+
+<style>
+  .four-oh-four {
+    margin: 64px auto 96px;
+    max-width: 560px;
+    text-align: center;
+  }
+  .code {
+    color: var(--text-tertiary);
+    font-size: 56px;
+    line-height: 1;
+    letter-spacing: -0.04em;
+    margin: 0 0 16px;
+  }
+  h1 {
+    font-size: 24px;
+    margin: 0 0 12px;
+    letter-spacing: -0.01em;
+  }
+  .muted { color: var(--text-secondary); line-height: 1.6; }
+  .search-wrap { margin: 28px 0; }
+  .links {
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-secondary);
+  }
+  .links a { color: var(--link); }
+  .dim { color: var(--text-tertiary); margin: 0 6px; }
+</style>
