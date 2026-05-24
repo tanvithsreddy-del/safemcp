@@ -25,8 +25,28 @@ const similar = similarServers(server, 5);
 const description = server.description || server.primary_function || `${server.owner}/${server.name} — MCP server`;
 const breakdown = computeScoreBreakdown(server);
 const fresh = freshness(server);
+
+// JSON-LD: helps Google understand the page is software, not a blog post.
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": `${server.owner}/${server.name}`,
+  "description": description,
+  "applicationCategory": "DeveloperApplication",
+  "operatingSystem": server.runtime || "Cross-platform",
+  "url": server.repo_url,
+  "codeRepository": server.repo_url,
+  "applicationSubCategory": `MCP Server (${server.mcp_category || "uncategorized"})`,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "aggregateRating": {
+    "@type": "AggregateRating",
+    "ratingValue": ((server.recommended_score ?? 0) / 20).toFixed(1), // 0-100 → 0-5
+    "bestRating": "5",
+    "ratingCount": Math.max(1, server.stars ?? 1)
+  }
+};
 ---
-<Base title={`${server.owner}/${server.name} — SafeMCP`} description={description}>
+<Base title={`${server.owner}/${server.name} — SafeMCP`} description={description} jsonLd={jsonLd}>
   <p class="muted small">
     <a href="/browse">Browse</a> · <a href={`/category/${server.mcp_category || "unknown"}/`}>{server.mcp_category || "unknown"}</a>
   </p>

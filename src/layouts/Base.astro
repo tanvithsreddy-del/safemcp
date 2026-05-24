@@ -8,13 +8,36 @@ import HeaderBanner from "../components/sponsor/HeaderBanner.astro";
 interface Props {
   title: string;
   description?: string;
+  image?: string;         // path under public/, e.g. "/og.png"
+  jsonLd?: object | null; // page-specific structured data
 }
 const {
   title,
   description = "The largest free directory of Model Context Protocol servers. 28,577 verified servers, individually categorized and scored.",
+  image = "/og.png",
+  jsonLd = null,
 } = Astro.props;
 
 const canonical = new URL(Astro.url.pathname, Astro.site).toString();
+const ogImage = new URL(image, Astro.site).toString();
+
+// Default site-wide JSON-LD: identifies the directory itself.
+const defaultJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "WebSite",
+  "name": "SafeMCP",
+  "url": "https://safemcp.info",
+  "description": "The largest free directory of Model Context Protocol servers.",
+  "potentialAction": {
+    "@type": "SearchAction",
+    "target": {
+      "@type": "EntryPoint",
+      "urlTemplate": "https://safemcp.info/search?q={search_term_string}"
+    },
+    "query-input": "required name=search_term_string"
+  }
+};
+const ldToEmit = jsonLd || defaultJsonLd;
 ---
 <!DOCTYPE html>
 <html lang="en" data-theme="dark">
@@ -34,17 +57,24 @@ const canonical = new URL(Astro.url.pathname, Astro.site).toString();
     <meta property="og:description" content={description} />
     <meta property="og:url" content={canonical} />
     <meta property="og:site_name" content="SafeMCP" />
+    <meta property="og:image" content={ogImage} />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="SafeMCP — directory of Model Context Protocol servers" />
 
     <!-- Twitter -->
-    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content={title} />
     <meta name="twitter:description" content={description} />
+    <meta name="twitter:image" content={ogImage} />
+
+    <!-- Structured data for search engines -->
+    <script type="application/ld+json" set:html={JSON.stringify(ldToEmit)} />
 
     <!-- Resolve theme before paint to prevent flash -->
     <script is:inline>
       (function () {
         try {
-          // Dark by default. Only switch to light if the user explicitly toggled before.
           const saved = localStorage.getItem("safemcp-theme");
           const theme = saved === "light" ? "light" : "dark";
           document.documentElement.setAttribute("data-theme", theme);
