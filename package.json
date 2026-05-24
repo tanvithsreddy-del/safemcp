@@ -7,15 +7,19 @@
     "dev": "npm run export-data && astro dev",
     "build": "npm run export-data && astro build",
     "build:no-export": "astro build",
-    "preview": "astro preview",
+    "preview": "npm run build && wrangler dev",
     "astro": "astro",
-    "export-data": "python3 scripts/export_data.py"
+    "export-data": "python3 scripts/export_data.py",
+    "deploy": "npm run build && wrangler deploy",
+    "cf-typegen": "wrangler types"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "11",
     "astro": "^4.16.18"
   },
   "devDependencies": {
     "@types/node": "^22.10.2",
-    "typescript": "^5.7.2"
+    "typescript": "^5.7.2",
+    "wrangler": "^4.94.0"
   }
 }
