@@ -91,8 +91,10 @@ def main() -> None:
         json.dump(servers, f, separators=(",", ":"))
     print(f"  Wrote {servers_path.name}: {servers_path.stat().st_size / 1024 / 1024:.1f} MB")
 
-    # 3) Top 1000 (for home page and static detail pages)
-    top = servers[:1000]
+    # 3) Top 3000 (for home page and static detail pages).
+    # Increased from 1000 to reduce 404 rate when users click long-tail entries
+    # in category pages. ServerRow falls back to direct GitHub links for the rest.
+    top = servers[:3000]
     top_path = OUT_DIR / "top.json"
     with open(top_path, "w") as f:
         json.dump(top, f, separators=(",", ":"))
@@ -127,6 +129,50 @@ def main() -> None:
     with open(categories_path, "w") as f:
         json.dump(categories, f, separators=(",", ":"))
     print(f"  Wrote {categories_path.name}: {len(categories)} categories")
+
+    # 4b) stats.json — TINY file (<1 KB) with precomputed totals.
+    # Read by Footer, SearchBox, ScoreDistribution — components that
+    # are bundled into the Worker via the Base layout. Without this,
+    # those components would import lib/data.ts which pulls all 35 MB
+    # of servers.json into the Worker bundle (exceeding the 3 MB limit).
+    score_buckets = [
+        {"bucket": "80-100", "lo": 80, "hi": 100},
+        {"bucket": "60-79",  "lo": 60, "hi": 79},
+        {"bucket": "40-59",  "lo": 40, "hi": 59},
+        {"bucket": "20-39",  "lo": 20, "hi": 39},
+        {"bucket": "0-19",   "lo": 0,  "hi": 19},
+    ]
+    total = len(servers) or 1
+    score_distribution = []
+    for b in score_buckets:
+        count = sum(
+            1 for s in servers
+            if b["lo"] <= (s.get("recommended_score") or 0) <= b["hi"]
+        )
+        score_distribution.append({
+            "bucket": b["bucket"],
+            "count": count,
+            "pct": round((count / total) * 1000) / 10,
+        })
+
+    runtime_counts: dict[str, int] = {}
+    for s in servers:
+        r = (s.get("runtime") or "unknown").lower()
+        runtime_counts[r] = runtime_counts.get(r, 0) + 1
+    runtimes_sorted = sorted(
+        [{"runtime": k, "count": v} for k, v in runtime_counts.items()],
+        key=lambda x: -x["count"],
+    )
+
+    stats = {
+        "total": len(servers),
+        "scoreDistribution": score_distribution,
+        "runtimes": runtimes_sorted,
+    }
+    stats_path = OUT_DIR / "stats.json"
+    with open(stats_path, "w") as f:
+        json.dump(stats, f, separators=(",", ":"))
+    print(f"  Wrote {stats_path.name}: {stats_path.stat().st_size} bytes")
 
     # 5) Search index (lightweight — only fields needed to match + display)
     search_index = [

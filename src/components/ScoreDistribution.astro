@@ -1,7 +1,7 @@
 ---
-import { scoreDistribution } from "../lib/data";
+import stats from "../data/stats.json";
 
-const dist = scoreDistribution();
+const dist = stats.scoreDistribution;
 const max = Math.max(...dist.map(d => d.count));
 
 const tierClass = (b: string) => {

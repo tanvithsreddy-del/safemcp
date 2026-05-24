@@ -1,6 +1,8 @@
 ---
-import { totalCount } from "../lib/data";
-const count = totalCount();
+// Read total from tiny stats.json (~200 bytes) instead of pulling
+// lib/data.ts (which imports 35 MB of servers.json).
+import stats from "../data/stats.json";
+const count = stats.total;
 ---
 <footer>
   <div class="container footer-inner">

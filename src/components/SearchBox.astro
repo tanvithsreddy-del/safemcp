@@ -1,6 +1,6 @@
 ---
-import { totalCount } from "../lib/data";
-const placeholder = `Search ${totalCount().toLocaleString()} servers by name, owner, function, or category`;
+import stats from "../data/stats.json";
+const placeholder = `Search ${stats.total.toLocaleString()} servers by name, owner, function, or category`;
 ---
 <form action="/search" method="get" class="search-input" role="search" data-searchbox>
   <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
