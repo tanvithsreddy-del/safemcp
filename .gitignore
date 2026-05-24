@@ -9,3 +9,10 @@ dist/
 # They're generated locally by `npm run export-data` and need to be
 # present in the repo for Cloudflare Pages builds (which don't have
 # access to your state.db). Re-run export-data and commit when data changes.
+
+# D1 import — generated locally by `npm run export-d1`, uploaded via
+# `npm run upload-d1`. Don't commit this 30+ MB file.
+src/data/servers.sql
+
+# Wrangler local state
+.wrangler/

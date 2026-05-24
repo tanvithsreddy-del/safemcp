@@ -6,6 +6,8 @@ interface Props {
   server: Server;
 }
 const { server } = Astro.props;
+
+// All servers have a detail page now (some static, most dynamic via D1).
 const href = `/s/${server.owner}/${server.name}/`;
 const desc = server.primary_function || server.description || "";
 const stars = (server.stars ?? 0).toLocaleString();

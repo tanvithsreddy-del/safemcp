@@ -9,9 +9,12 @@
     "build:no-export": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "export-data": "python3 scripts/export_data.py"
+    "export-data": "python3 scripts/export_data.py",
+    "export-d1": "python3 scripts/export_d1_sql.py",
+    "upload-d1": "wrangler d1 execute safemcp-servers --remote --file=./src/data/servers.sql"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^11.0.0",
     "astro": "^4.16.18"
   },
   "devDependencies": {

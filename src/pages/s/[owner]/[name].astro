@@ -3,30 +3,80 @@ import Base from "../../../layouts/Base.astro";
 import ScoreBadge from "../../../components/ScoreBadge.astro";
 import ServerRow from "../../../components/ServerRow.astro";
 import InstallSnippet from "../../../components/InstallSnippet.astro";
-import { topServers, similarServers, freshness } from "../../../lib/data";
 import { computeScoreBreakdown } from "../../../lib/score";
+import { freshness } from "../../../lib/runtime";
+import type { Server } from "../../../lib/data";
 
-export async function getStaticPaths() {
-  // Static-generate detail pages for top 1000.
-  // Servers below top 1000 are handled by /search or category pages.
-  return topServers.map((s) => ({
-    params: { owner: s.owner, name: s.name },
-    props: { server: s },
-  }));
+// This page is dynamic — it queries D1 at request time.
+// Cloudflare edge caches the response for 24h via Cache-Control headers below.
+// The top ~3000 servers will sit in edge cache and perform like static HTML.
+export const prerender = false;
+
+const { owner, name } = Astro.params;
+
+if (!owner || !name) {
+  return new Response("Bad request", { status: 400 });
 }
 
-const { server } = Astro.props;
+const db: any = (Astro.locals as any)?.runtime?.env?.DB;
+
+let server: Server | null = null;
+let similar: Server[] = [];
+let dbAvailable = !!db;
+
+if (db) {
+  try {
+    const row = await db
+      .prepare("SELECT data FROM servers WHERE owner = ? AND name = ?")
+      .bind(owner, name)
+      .first();
+    if (row?.data) {
+      server = JSON.parse(row.data as string) as Server;
+
+      // Similar: top 5 in same category, excluding this one.
+      const cat = server.mcp_category || "unknown";
+      const sim = await db
+        .prepare(
+          `SELECT data FROM servers
+           WHERE category = ?
+             AND NOT (owner = ? AND name = ?)
+           ORDER BY score DESC LIMIT 5`
+        )
+        .bind(cat, owner, name)
+        .all();
+      similar = (sim?.results || []).map((r: any) => JSON.parse(r.data));
+    }
+  } catch (e) {
+    // D1 query failure — fall through to 404.
+  }
+}
+
+// Not found OR D1 unavailable — return a 404 response. Cloudflare will serve
+// our 404.astro static asset for this status code thanks to the assets routing.
+if (!server) {
+  return new Response("Not found", {
+    status: 404,
+    headers: { "Cache-Control": "public, max-age=60" },
+  });
+}
+
+// Cache hot at the edge for 24h, but let browsers re-check every 5min.
+Astro.response.headers.set(
+  "Cache-Control",
+  "public, max-age=300, s-maxage=86400, stale-while-revalidate=86400"
+);
 
 const stars = (server.stars ?? 0).toLocaleString();
 const forks = (server.forks ?? 0).toLocaleString();
 const tags = (server.mcp_tags || "").split(",").map((t) => t.trim()).filter(Boolean);
 const sources = (server.sources || "").split(",").map((t) => t.trim()).filter(Boolean);
-const similar = similarServers(server, 5);
-const description = server.description || server.primary_function || `${server.owner}/${server.name} — MCP server`;
+const description =
+  server.description ||
+  server.primary_function ||
+  `${server.owner}/${server.name} — MCP server`;
 const breakdown = computeScoreBreakdown(server);
 const fresh = freshness(server);
 
-// JSON-LD: helps Google understand the page is software, not a blog post.
 const jsonLd = {
   "@context": "https://schema.org",
   "@type": "SoftwareApplication",
@@ -40,10 +90,10 @@ const jsonLd = {
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "aggregateRating": {
     "@type": "AggregateRating",
-    "ratingValue": ((server.recommended_score ?? 0) / 20).toFixed(1), // 0-100 → 0-5
+    "ratingValue": ((server.recommended_score ?? 0) / 20).toFixed(1),
     "bestRating": "5",
-    "ratingCount": Math.max(1, server.stars ?? 1)
-  }
+    "ratingCount": Math.max(1, server.stars ?? 1),
+  },
 };
 ---
 <Base title={`${server.owner}/${server.name} — SafeMCP`} description={description} jsonLd={jsonLd}>
