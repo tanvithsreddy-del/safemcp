@@ -1,19 +1,22 @@
-# Wrangler config — Cloudflare reads this on every Git deploy to attach
-# bindings (D1, KV, R2, etc.) to the safemcp Worker.
+# Wrangler config — Cloudflare reads this on every Git deploy.
 #
-# The `name` here MUST match the Worker name in Cloudflare ("safemcp").
-# Astro's Cloudflare adapter generates the main entry, so we don't set `main`.
+# `name` MUST match the Worker name in Cloudflare ("safemcp").
+# `main` points to the Worker script Astro's Cloudflare adapter generates.
+# `[assets]` tells Wrangler to serve static files from dist/.
 
 name = "safemcp"
 compatibility_date = "2025-10-01"
 compatibility_flags = ["nodejs_compat"]
+main = "./dist/_worker.js/index.js"
 
-# D1 binding — Worker code reads this as Astro.locals.runtime.env.DB.
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+
+# D1 binding — read in dynamic pages as Astro.locals.runtime.env.DB
 #
-# IMPORTANT: After creating the D1 database in the Cloudflare dashboard,
-# paste the database_id below. Without this, the dynamic detail pages
-# will return 500 errors.
+# After creating the D1 database in Cloudflare dashboard, paste the ID below.
 [[d1_databases]]
 binding = "DB"
 database_name = "safemcp-servers"
-database_id = "PASTE_DATABASE_ID_HERE"
+database_id = "24f86147-59a3-4140-9187-49ef65611a9e"

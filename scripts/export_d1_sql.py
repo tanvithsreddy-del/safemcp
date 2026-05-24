@@ -46,7 +46,7 @@ DETAIL_FIELDS = [
     "last_commit_at",
 ]
 
-BATCH = 500  # rows per multi-row INSERT
+BATCH = 50  # rows per multi-row INSERT (D1 caps statements ~100KB)
 
 
 def sql_quote(v) -> str:
