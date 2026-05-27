@@ -490,3 +490,99 @@ h3 { font-size: 15px; }
 .claimed-card a.primary:hover {
   border-color: #1d9bf0;
 }
+
+/* ============================================================
+   safemcp Phase 1.5 — fix verified-pill bug, score boost styling,
+   verified filter, and slightly more prominent row markers.
+   These rules are APPENDED to global.css.
+   ============================================================ */
+
+/* BUG FIX: HTML hidden attribute is overridden when an element has an
+   explicit display rule. Add hidden overrides for the elements that
+   start hidden and are revealed by JS. */
+.verified-pill[hidden] { display: none !important; }
+.claim-cta[hidden]     { display: none !important; }
+
+/* Slightly larger / more prominent ✓ badge on rows so it's visible
+   without squinting. */
+.verified-badge svg { width: 15px; height: 15px; }
+
+/* When the score has been boosted by verification, show a subtle
+   accent so the +5 isn't invisible. */
+.row[data-verified="1"] .score.score-boosted {
+  position: relative;
+}
+.row[data-verified="1"] .score.score-boosted::after {
+  content: "+";
+  position: absolute;
+  top: -2px;
+  right: -8px;
+  font-size: 9px;
+  color: #1d9bf0;
+  font-weight: bold;
+}
+
+/* Make the verified row a touch more distinctive (subtle border tint). */
+.row[data-verified="1"] {
+  border-color: rgba(29, 155, 240, 0.25);
+}
+.row[data-verified="1"]:hover {
+  border-color: rgba(29, 155, 240, 0.55);
+}
+
+/* Verified-only filter toggle in the filter bar. */
+.filter-bar .filter-verified-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  align-self: end;
+}
+.filter-bar .filter-verified-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 10px;
+  border: 0.5px solid var(--border-default);
+  background: var(--bg-page);
+  font-family: var(--font-mono);
+  font-size: 13px;
+  color: var(--text-primary);
+  cursor: pointer;
+  user-select: none;
+  min-width: 110px;
+}
+.filter-bar .filter-verified-row:hover {
+  border-color: var(--border-strong);
+}
+.filter-bar .filter-verified-row input[type="checkbox"] {
+  accent-color: #1d9bf0;
+  cursor: pointer;
+}
+
+/* Detail-page score-bonus row in the breakdown table. */
+.breakdown-row.breakdown-bonus .breakdown-label {
+  color: #1d9bf0;
+}
+
+/* Featured "verified maintainer" attribution under the repo title. */
+.verified-maintainers {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px;
+  margin: 8px 0 0;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+.verified-maintainers img {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 0.5px solid var(--border-subtle);
+}
+.verified-maintainers a {
+  color: #1d9bf0;
+  text-decoration: none;
+}
+.verified-maintainers a:hover { text-decoration: underline; }

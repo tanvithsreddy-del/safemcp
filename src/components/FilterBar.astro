@@ -12,6 +12,7 @@ interface Props {
   showMinScore?: boolean;
   showSort?: boolean;
   showText?: boolean;
+  showVerified?: boolean;
 }
 const {
   runtimes = [],
@@ -19,6 +20,7 @@ const {
   showMinScore = true,
   showSort = true,
   showText = true,
+  showVerified = true,
 } = Astro.props;
 ---
 
@@ -80,6 +82,16 @@ const {
     </div>
   )}
 
+  {showVerified && (
+    <div class="filter-verified-group">
+      <label class="filter-label">Verified</label>
+      <label class="filter-verified-row">
+        <input type="checkbox" data-filter="verified" />
+        Owner only
+      </label>
+    </div>
+  )}
+
   <button type="button" class="filter-btn filter-btn-primary" data-filter-search>Search</button>
   <button type="button" class="filter-btn" data-filter-reset>Reset</button>
   <span class="filter-count" data-filter-count></span>
@@ -102,14 +114,15 @@ const {
         const apikey = bar.querySelector('[data-filter="apikey"]')?.value || "";
         const minScore = parseInt(bar.querySelector('[data-filter="minscore"]')?.value || "0", 10);
         const sortBy = bar.querySelector('[data-filter="sort"]')?.value || "score";
+        const verifiedOnly = bar.querySelector('[data-filter="verified"]')?.checked || false;
 
         const filtered = rows.filter((r) => {
           if (runtime && (r.dataset.runtime || "") !== runtime) return false;
           if (apikey !== "" && (r.dataset.apikey || "") !== apikey) return false;
           const s = parseInt(r.dataset.score || "0", 10);
           if (s < minScore) return false;
+          if (verifiedOnly && r.dataset.verified !== "1") return false;
           if (text) {
-            // Use textContent so we match name + owner + description in the rendered row
             const hay = (r.dataset.name + " " + (r.textContent || "")).toLowerCase();
             if (!hay.includes(text)) return false;
           }
@@ -126,7 +139,6 @@ const {
           return parseInt(b.dataset.score || "0", 10) - parseInt(a.dataset.score || "0", 10);
         });
 
-        // Hide all rows, then re-append matching ones in order.
         for (const r of rows) r.style.display = "none";
         for (const r of sorted) {
           r.style.display = "";
@@ -136,25 +148,28 @@ const {
         if (counter) counter.textContent = `${sorted.length.toLocaleString()} / ${rows.length.toLocaleString()}`;
       }
 
-      // Apply live as the user types or changes any filter.
       bar.addEventListener("input", apply);
       bar.addEventListener("change", apply);
 
-      // Explicit Search button (also covers Enter from the text input).
       bar.querySelector("[data-filter-search]")?.addEventListener("click", apply);
       bar.querySelector('[data-filter="text"]')?.addEventListener("keydown", (e) => {
         if (e.key === "Enter") { e.preventDefault(); apply(); }
       });
 
-      // Reset clears all filters and re-applies.
       bar.querySelector("[data-filter-reset]")?.addEventListener("click", () => {
         bar.querySelectorAll("select").forEach((s) => { s.selectedIndex = 0; });
         const t = bar.querySelector('[data-filter="text"]');
         if (t) t.value = "";
+        const v = bar.querySelector('[data-filter="verified"]');
+        if (v) v.checked = false;
         apply();
       });
 
-      // First render.
+      // Re-apply after verify-hydrate.js has finished bumping scores and
+      // marking rows. This makes the "Verified only" toggle and the score
+      // bonus visible without needing a manual refresh.
+      document.addEventListener("safemcp:verified-hydrated", apply);
+
       apply();
     }
 

@@ -45,6 +45,21 @@ if (db) {
         .bind(cat, owner, name)
         .all();
       similar = (sim?.results || []).map((r: any) => JSON.parse(r.data));
+
+      // PHASE_15_VERIFY: check if this server has been claimed by its owner
+      try {
+        const verRes = await db
+          .prepare(
+            `SELECT github_login, github_avatar_url FROM verifications
+              WHERE server_owner = ? AND server_name = ?
+              ORDER BY verified_at ASC`
+          )
+          .bind(owner, name)
+          .all();
+        (server as any).__verified_maintainers = verRes?.results || [];
+      } catch (e) {
+        (server as any).__verified_maintainers = [];
+      }
     }
   } catch (e) {
     // D1 query failure — fall through to 404.
@@ -75,6 +90,13 @@ const description =
   server.primary_function ||
   `${server.owner}/${server.name} — MCP server`;
 const breakdown = computeScoreBreakdown(server);
+
+// PHASE_15_VERIFY: bonus + maintainer display
+const VERIFIED_BONUS = 5;
+const maintainers = ((server as any).__verified_maintainers || []) as Array<{ github_login: string; github_avatar_url: string | null }>;
+const isVerified = maintainers.length > 0;
+const baseScore = server.recommended_score ?? 0;
+const effectiveScore = isVerified ? baseScore + VERIFIED_BONUS : baseScore;
 const fresh = freshness(server);
 
 const jsonLd = {
@@ -102,7 +124,7 @@ const jsonLd = {
   </p>
 
   <div class="header">
-    <ScoreBadge score={server.recommended_score} />
+    <ScoreBadge score={effectiveScore} />
     <div>
       <h1 class="mono repo">
         <a href={server.repo_url} target="_blank" rel="noopener">
@@ -127,15 +149,30 @@ const jsonLd = {
   {server.description && server.description !== server.primary_function && (
     <p class="desc-block">{server.description}</p>
   )}
-
-    {/* Phase 1 — claim/verify */}
+  {/* Phase 1.5 — claim/verify (server-rendered, no flicker) */}
   <div style="margin: 12px 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
-    <span class="verified-pill" data-verified-for={`${server.owner}/${server.name}`} hidden>
-      <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Zm3.78 6.28-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06L6.75 9.19l3.97-3.97a.75.75 0 1 1 1.06 1.06Z"/></svg>
-      Verified by owner
-    </span>
-    <a class="claim-cta" href={`/api/auth/github?serverId=${encodeURIComponent(server.owner + "/" + server.name)}`} data-claim-for={`${server.owner}/${server.name}`} rel="nofollow">Claim this server &rarr;</a>
+    {isVerified ? (
+      <span class="verified-pill">
+        <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Zm3.78 6.28-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06L6.75 9.19l3.97-3.97a.75.75 0 1 1 1.06 1.06Z"/></svg>
+        Verified by owner
+      </span>
+    ) : (
+      <a class="claim-cta" href={`/api/auth/github?serverId=${encodeURIComponent(server.owner + "/" + server.name)}`} rel="nofollow">Claim this server &rarr;</a>
+    )}
   </div>
+
+  {isVerified && maintainers.length > 0 && (
+    <p class="verified-maintainers">
+      Verified by{' '}
+      {maintainers.map((m, i) => (
+        <>
+          {m.github_avatar_url && <img src={m.github_avatar_url} alt="" loading="lazy" />}
+          <a href={`https://github.com/${m.github_login}`} target="_blank" rel="noopener">@{m.github_login}</a>
+          {i < maintainers.length - 1 ? <span>·</span> : null}
+        </>
+      ))}
+    </p>
+  )}
 
   <p style="margin: 16px 0;"><a href={server.repo_url} target="_blank" rel="noopener">View on GitHub →</a></p>
 
@@ -152,6 +189,15 @@ const jsonLd = {
         <div class="breakdown-value">{c.value} / {c.max}</div>
       </div>
     ))}
+    {isVerified && (
+      <div class="breakdown-row breakdown-bonus">
+        <div>
+          <span class="breakdown-label">Verified by owner</span>
+          <span class="breakdown-help">Bonus for confirmed maintainer ownership</span>
+        </div>
+        <div class="breakdown-value">+{VERIFIED_BONUS}</div>
+      </div>
+    )}
     <div class="breakdown-row" style="border-top: 0.5px solid var(--border-default); padding-top: 10px; margin-top: 4px;">
       <span class="breakdown-label" style="font-weight: 500;">Total</span>
       <span class="breakdown-value" style="font-weight: 500;">{server.recommended_score ?? 0} / 100</span>
