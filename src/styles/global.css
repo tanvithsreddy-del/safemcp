@@ -140,50 +140,6 @@ h3 { font-size: 15px; }
 /* ===== Server row ===== */
 .row-list { display: flex; flex-direction: column; gap: 3px; }
 
-.row {
-  display: grid;
-  grid-template-columns: 52px minmax(0, 1fr) auto;
-  align-items: center;
-  gap: 14px;
-  padding: 10px 14px;
-  border: 0.5px solid var(--border-subtle);
-  border-radius: var(--radius-md);
-  text-decoration: none;
-  color: inherit;
-  transition: border-color 80ms ease, background 80ms ease;
-}
-.row:hover {
-  border-color: var(--border-strong);
-  background: var(--bg-surface);
-  color: inherit;
-}
-.row .repo {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-size: 14px;
-  color: var(--text-primary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.row .repo .slash { color: var(--text-tertiary); }
-.row .desc {
-  margin: 2px 0 0;
-  font-size: 12px;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.row .meta {
-  font-family: var(--font-mono);
-  font-size: 11px;
-  color: var(--text-secondary);
-  text-align: right;
-  white-space: nowrap;
-}
-.row .meta .cat { color: var(--text-tertiary); }
-
 /* ===== Stat cards ===== */
 .stats {
   display: grid;
@@ -348,4 +304,189 @@ h3 { font-size: 15px; }
 .pager .current {
   color: var(--text-primary);
   border-color: var(--border-strong);
+}
+
+/* ============================================================
+   safemcp Phase 1 — claim/verify UI
+   Append these rules to src/styles/global.css.
+   They replace the existing `.row` rules (lines roughly 1-3
+   below `.row-list` in the existing file).
+   ============================================================ */
+
+/* Row is now a flex container holding row-main (inner anchor)
+   + an optional claim button to its right. */
+.row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border: 0.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  transition: border-color 80ms ease, background 80ms ease;
+  overflow: hidden;
+}
+.row:hover {
+  border-color: var(--border-strong);
+  background: var(--bg-surface);
+}
+
+/* The main clickable area inherits the old .row grid layout. */
+.row-main {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: grid;
+  grid-template-columns: 52px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  padding: 10px 14px;
+  text-decoration: none;
+  color: inherit;
+}
+.row-main:hover { color: inherit; }
+
+.row .row-text { min-width: 0; }
+
+.row .repo {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.row .repo .repo-name {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+.row .repo .slash { color: var(--text-tertiary); }
+
+.row .desc {
+  margin: 2px 0 0;
+  font-size: 12px;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+.row .meta {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  text-align: right;
+  white-space: nowrap;
+}
+.row .meta .cat { color: var(--text-tertiary); }
+
+/* Verified tick — Instagram-style, sits next to the repo name.
+   Hidden by default; client script reveals it once /api/verified.json
+   loads and confirms this server is in the verified set. */
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+  color: #1d9bf0;
+  flex: 0 0 auto;
+}
+.verified-badge[hidden] { display: none; }
+
+/* Claim button — sibling of row-main, visually attached to the row.
+   Hidden client-side when the server is already verified. */
+.claim-btn {
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  padding: 0 14px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-tertiary);
+  text-decoration: none;
+  border-left: 0.5px solid var(--border-subtle);
+  transition: color 80ms ease, background 80ms ease;
+}
+.claim-btn:hover {
+  color: #1d9bf0;
+  background: var(--bg-surface);
+}
+.claim-btn[hidden] { display: none; }
+
+/* ============================================================
+   Claim button on the server detail page (/s/owner/name)
+   ============================================================ */
+.claim-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  transition: border-color 80ms ease, background 80ms ease;
+}
+.claim-cta:hover {
+  border-color: #1d9bf0;
+  background: var(--bg-surface);
+}
+
+.verified-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: #1d9bf0;
+  background: rgba(29, 155, 240, 0.08);
+  border-radius: var(--radius-md);
+}
+
+/* ============================================================
+   /claimed landing page
+   ============================================================ */
+.claimed-card {
+  max-width: 520px;
+  margin: 80px auto;
+  padding: 32px;
+  border: 0.5px solid var(--border-subtle);
+  border-radius: var(--radius-md);
+  background: var(--bg-surface);
+}
+.claimed-card h1 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+.claimed-card .sub {
+  color: var(--text-secondary);
+  margin: 0 0 24px;
+  font-size: 14px;
+}
+.claimed-card .ok-mark {
+  color: #1d9bf0;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+.claimed-card .err-mark {
+  color: #f04438;
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+.claimed-card a.primary {
+  display: inline-block;
+  margin-top: 8px;
+  padding: 8px 14px;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-primary);
+  text-decoration: none;
+  border: 0.5px solid var(--border-strong);
+  border-radius: var(--radius-md);
+}
+.claimed-card a.primary:hover {
+  border-color: #1d9bf0;
 }

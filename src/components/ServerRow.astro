@@ -7,7 +7,6 @@ interface Props {
 }
 const { server } = Astro.props;
 
-// All servers have a detail page now (some static, most dynamic via D1).
 const href = `/s/${server.owner}/${server.name}/`;
 const desc = server.primary_function || server.description || "";
 const stars = (server.stars ?? 0).toLocaleString();
@@ -15,9 +14,9 @@ const score = server.recommended_score ?? 0;
 const runtime = (server.runtime || "").toLowerCase();
 const apikey = server.requires_api_key === true ? "1" : (server.requires_api_key === false ? "0" : "");
 const sortName = `${server.owner}/${server.name}`;
+const claimHref = `/api/auth/github?serverId=${encodeURIComponent(sortName)}`;
 ---
-<a
-  href={href}
+<div
   class="row"
   data-row="server"
   data-runtime={runtime}
@@ -25,14 +24,31 @@ const sortName = `${server.owner}/${server.name}`;
   data-score={score}
   data-stars={server.stars ?? 0}
   data-name={sortName}
+  data-server={sortName}
 >
-  <ScoreBadge score={server.recommended_score} />
-  <div>
-    <p class="repo">{server.owner}<span class="slash">/</span>{server.name}</p>
-    {desc && <p class="desc">{desc}</p>}
-  </div>
-  <div class="meta">
-    <div>★ {stars}</div>
-    <div class="cat">{server.mcp_category || "unknown"}</div>
-  </div>
-</a>
+  <a href={href} class="row-main">
+    <ScoreBadge score={server.recommended_score} />
+    <div class="row-text">
+      <p class="repo">
+        <span class="repo-name">{server.owner}<span class="slash">/</span>{server.name}</span>
+        <span class="verified-badge" data-verified-for={sortName} hidden aria-label="Verified by owner" title="Verified by owner">
+          <svg viewBox="0 0 16 16" width="14" height="14" aria-hidden="true">
+            <path fill="currentColor" d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Zm3.78 6.28-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06L6.75 9.19l3.97-3.97a.75.75 0 1 1 1.06 1.06Z"/>
+          </svg>
+        </span>
+      </p>
+      {desc && <p class="desc">{desc}</p>}
+    </div>
+    <div class="meta">
+      <div>★ {stars}</div>
+      <div class="cat">{server.mcp_category || "unknown"}</div>
+    </div>
+  </a>
+  <a
+    href={claimHref}
+    class="claim-btn"
+    data-claim-for={sortName}
+    title={`Claim ${sortName} — verify ownership via GitHub`}
+    rel="nofollow"
+  >Claim</a>
+</div>

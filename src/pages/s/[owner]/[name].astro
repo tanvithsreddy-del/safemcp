@@ -128,6 +128,15 @@ const jsonLd = {
     <p class="desc-block">{server.description}</p>
   )}
 
+    {/* Phase 1 — claim/verify */}
+  <div style="margin: 12px 0; display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+    <span class="verified-pill" data-verified-for={`${server.owner}/${server.name}`} hidden>
+      <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Zm3.78 6.28-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06L6.75 9.19l3.97-3.97a.75.75 0 1 1 1.06 1.06Z"/></svg>
+      Verified by owner
+    </span>
+    <a class="claim-cta" href={`/api/auth/github?serverId=${encodeURIComponent(server.owner + "/" + server.name)}`} data-claim-for={`${server.owner}/${server.name}`} rel="nofollow">Claim this server &rarr;</a>
+  </div>
+
   <p style="margin: 16px 0;"><a href={server.repo_url} target="_blank" rel="noopener">View on GitHub →</a></p>
 
   <InstallSnippet server={server} />

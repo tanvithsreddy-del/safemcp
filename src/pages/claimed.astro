@@ -1,0 +1,94 @@
+---
+import Base from "../layouts/Base.astro";
+
+// Static page; the actual outcome is read from URL params client-side
+// (and also rendered server-side for SEO/no-JS).
+const url = new URL(Astro.request.url);
+const status = url.searchParams.get("status") || "";
+const sid = url.searchParams.get("sid") || "";
+const info = url.searchParams.get("info") || "";
+
+const messages: Record<string, { title: string; sub: string; ok: boolean }> = {
+  ok: {
+    title: "Verified",
+    sub: "You've been confirmed as a maintainer of this MCP server.",
+    ok: true,
+  },
+  denied: {
+    title: "Authorization cancelled",
+    sub: "You declined the GitHub authorization. No verification was recorded.",
+    ok: false,
+  },
+  expired: {
+    title: "Link expired",
+    sub: "The verification link expired before you completed sign-in. Try again from the server's listing.",
+    ok: false,
+  },
+  bad_request: {
+    title: "Invalid request",
+    sub: "Something was missing from the verification flow. Try starting again from the server's listing.",
+    ok: false,
+  },
+  not_owner: {
+    title: "Not a maintainer",
+    sub: "Your GitHub account doesn't have push or admin permission on that repository, so we can't verify ownership.",
+    ok: false,
+  },
+  fork_not_allowed: {
+    title: "This repo is a fork",
+    sub: "Verification is restricted to the original repository. Please claim the upstream repo instead.",
+    ok: false,
+  },
+  repo_not_found: {
+    title: "Repository not accessible",
+    sub: "GitHub returned 404 — the repository may be private or deleted. If you changed visibility, try again later.",
+    ok: false,
+  },
+  token_exchange_failed: {
+    title: "GitHub sign-in failed",
+    sub: "We couldn't complete the OAuth exchange with GitHub. Try again in a moment.",
+    ok: false,
+  },
+  no_token: {
+    title: "GitHub sign-in failed",
+    sub: "GitHub didn't return an access token. Try again, and contact us if this keeps happening.",
+    ok: false,
+  },
+  user_fetch_failed: {
+    title: "Couldn't read your GitHub identity",
+    sub: "GitHub returned an error when we asked who you were. Try again in a moment.",
+    ok: false,
+  },
+  repo_fetch_failed: {
+    title: "Couldn't check repo permissions",
+    sub: "We got a sign-in token but GitHub didn't tell us about your access. Try again in a moment.",
+    ok: false,
+  },
+  db_write_failed: {
+    title: "Verification recorded but storage failed",
+    sub: "You're verified with GitHub but we couldn't persist the result. Please email us so we can fix it manually.",
+    ok: false,
+  },
+};
+
+const fallback = {
+  title: "Verification result",
+  sub: "Something unexpected happened. Try again from the server's listing.",
+  ok: false,
+};
+const msg = messages[status] || fallback;
+
+const backHref = sid ? `/s/${sid}/` : "/";
+const backLabel = sid ? `Back to ${sid}` : "Back to safemcp";
+---
+<Base title={`${msg.title} · safemcp`} description={msg.sub}>
+  <main>
+    <div class="claimed-card">
+      <div class={msg.ok ? "ok-mark" : "err-mark"}>{msg.ok ? "✓" : "✕"}</div>
+      <h1>{msg.title}</h1>
+      <p class="sub">{msg.sub}</p>
+      {info && <p class="sub" style="font-family: var(--font-mono); font-size: 11px; opacity: 0.6;">{info}</p>}
+      <a class="primary" href={backHref}>{backLabel}</a>
+    </div>
+  </main>
+</Base>
