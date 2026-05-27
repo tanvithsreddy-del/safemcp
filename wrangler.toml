@@ -20,3 +20,9 @@ binding = "ASSETS"
 binding = "DB"
 database_name = "safemcp-servers"
 database_id = "24f86147-59a3-4140-9187-49ef65611a9e"
+
+# KV binding for API beta signup form (form on /api-beta).
+# Stores: app:* keys (one per submission), rate:* keys (IP rate limits), meta:total counter.
+[[kv_namespaces]]
+binding = "API_BETA_SIGNUPS"
+id = "891a68761c134b5fa959b5995741f4e7"

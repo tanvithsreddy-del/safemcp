@@ -1,0 +1,379 @@
+---
+import Base from "../layouts/Base.astro";
+
+export const prerender = true;
+---
+
+<Base
+  title="API Beta Access — SafeMCP"
+  description="Apply for early API access to the SafeMCP directory of 28,577+ MCP servers. Free during beta. 100 spots."
+>
+  <section class="api-beta">
+    <p class="eyebrow">api</p>
+    <h1>API Beta Access</h1>
+    <p class="lede">
+      Programmatic access to the SafeMCP directory. 28,577 verified MCP servers,
+      95 categories, individually scored. Filter, search, sort, paginate.
+      Free during beta. 100 spots open.
+    </p>
+
+    <div class="meta-grid">
+      <div class="meta">
+        <p class="meta-label">cost</p>
+        <p class="meta-value">free during beta, pricing TBD</p>
+      </div>
+      <div class="meta">
+        <p class="meta-label">rate limit</p>
+        <p class="meta-value">calibrated per application</p>
+      </div>
+      <div class="meta">
+        <p class="meta-label">timeline</p>
+        <p class="meta-value">access rolling out over coming weeks</p>
+      </div>
+      <div class="meta">
+        <p class="meta-label">spots</p>
+        <p class="meta-value">100 total</p>
+      </div>
+    </div>
+
+    <hr class="rule" />
+
+    <h2>What you'll be able to do</h2>
+    <ul class="features">
+      <li>Query the full directory of 28,577+ MCP servers</li>
+      <li>Filter by category (95 total), runtime, score, source</li>
+      <li>Sort by recommended score, popularity, freshness</li>
+      <li>Get install snippets, repo metadata, classification data</li>
+      <li>JSON responses, simple REST endpoints, no auth headers in beta</li>
+    </ul>
+
+    <h2>Apply</h2>
+    <p class="form-intro">
+      Fill this out and i'll review applications by hand. I want to talk
+      to people building real things with MCP, so the use case field
+      matters more than the others. Manually approved, expect a reply
+      within a few days.
+    </p>
+
+    <form
+      id="beta-form"
+      class="beta-form"
+      method="POST"
+      action="/api/beta-signup"
+    >
+      <div class="field">
+        <label for="email">Email <span class="req">*</span></label>
+        <input
+          type="email"
+          id="email"
+          name="email"
+          required
+          autocomplete="email"
+          placeholder="you@example.com"
+        />
+      </div>
+
+      <div class="field">
+        <label for="name">Name <span class="req">*</span></label>
+        <input
+          type="text"
+          id="name"
+          name="name"
+          required
+          autocomplete="name"
+          maxlength="100"
+          placeholder="your name"
+        />
+      </div>
+
+      <div class="field">
+        <label for="use_case">
+          What are you planning to build? <span class="req">*</span>
+        </label>
+        <textarea
+          id="use_case"
+          name="use_case"
+          required
+          rows="5"
+          maxlength="2000"
+          placeholder="be specific. what app, what features, what's the user benefit, what's the volume going to look like."
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label for="volume">Expected daily requests <span class="req">*</span></label>
+        <select id="volume" name="volume" required>
+          <option value="">choose one</option>
+          <option value="under_100">under 100</option>
+          <option value="100_1k">100 to 1,000</option>
+          <option value="1k_10k">1,000 to 10,000</option>
+          <option value="10k_100k">10,000 to 100,000</option>
+          <option value="over_100k">over 100,000</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="company">Company (optional)</label>
+        <input
+          type="text"
+          id="company"
+          name="company"
+          maxlength="100"
+          autocomplete="organization"
+          placeholder="leave blank if solo / personal project"
+        />
+      </div>
+
+      <div class="hp" aria-hidden="true">
+        <label for="website">Website</label>
+        <input type="text" id="website" name="website" tabindex="-1" autocomplete="off" />
+      </div>
+
+      <button type="submit" id="submit-btn">Apply</button>
+
+      <p class="form-note">
+        Submissions are stored privately. Not shared, not sold, not used
+        for anything other than beta approval.
+      </p>
+    </form>
+
+    <hr class="rule" />
+
+    <h2>FAQ</h2>
+
+    <details>
+      <summary>Why limited to 100 spots?</summary>
+      <p>
+        Solo project. I want to talk to early users one-on-one to shape
+        the API based on what people are actually building. Letting in
+        unlimited people first day would defeat that.
+      </p>
+    </details>
+
+    <details>
+      <summary>Will it stay free?</summary>
+      <p>
+        Beta is free. Long term, the goal is to keep the API run as a
+        non-profit and only charge what infra actually costs to operate.
+        No VC-extraction pricing, no surprise rate hikes. Beta
+        participants get grandfathered into whatever the final model is.
+      </p>
+    </details>
+
+    <details>
+      <summary>What if I'm not approved?</summary>
+      <p>
+        I'll still reply. If you're not in the first 100, you go on the
+        waitlist for the next batch. The site itself stays free for
+        humans browsing, that doesn't change.
+      </p>
+    </details>
+
+    <details>
+      <summary>Can I see API docs first?</summary>
+      <p>
+        Docs go out to approved beta users along with the API key. The
+        endpoints are basic REST, JSON in / JSON out, nothing exotic.
+      </p>
+    </details>
+
+    <details>
+      <summary>What happens to my data if I apply?</summary>
+      <p>
+        Stored on Cloudflare KV (encrypted at rest). Only used to review
+        and approve applications. Deleted on request, just email
+        hello@safemcp.info.
+      </p>
+    </details>
+  </section>
+</Base>
+
+<script is:inline>
+  (function () {
+    const form = document.getElementById("beta-form");
+    const btn = document.getElementById("submit-btn");
+    if (!form || !btn) return;
+
+    form.addEventListener("submit", async function (e) {
+      e.preventDefault();
+      btn.disabled = true;
+      btn.textContent = "submitting...";
+
+      const data = new FormData(form);
+      const payload = {
+        email: data.get("email"),
+        name: data.get("name"),
+        use_case: data.get("use_case"),
+        volume: data.get("volume"),
+        company: data.get("company") || "",
+        website: data.get("website") || "",
+      };
+
+      try {
+        const res = await fetch("/api/beta-signup", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+
+        if (res.ok) {
+          window.location.href = "/api-beta/thanks/";
+          return;
+        }
+
+        const body = await res.json().catch(() => ({}));
+        if (res.status === 429) {
+          alert("Too many submissions from this IP. Try again in a few minutes.");
+        } else if (res.status === 400) {
+          alert(body.error || "Check your form and try again.");
+        } else {
+          alert("Something went wrong, try again in a few minutes.");
+        }
+      } catch (err) {
+        alert("Network error. Check your connection and try again.");
+      } finally {
+        btn.disabled = false;
+        btn.textContent = "Apply";
+      }
+    });
+  })();
+</script>
+
+<style>
+  .api-beta { max-width: 720px; margin: 0 auto; padding: 32px 0 80px; }
+  .eyebrow {
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 8px;
+    font-family: var(--font-mono);
+  }
+  h1 { margin: 0 0 16px; font-size: 32px; line-height: 1.2; }
+  .lede {
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--text-primary);
+    margin: 0 0 32px;
+  }
+  .meta-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 16px 24px;
+    margin: 24px 0;
+  }
+  .meta { border-left: 2px solid var(--border-subtle); padding-left: 12px; }
+  .meta-label {
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin: 0 0 4px;
+    font-family: var(--font-mono);
+  }
+  .meta-value {
+    font-size: 14px;
+    margin: 0;
+    color: var(--text-primary);
+  }
+  .rule {
+    border: 0;
+    border-top: 0.5px solid var(--border-subtle);
+    margin: 40px 0 32px;
+  }
+  h2 { font-size: 20px; margin: 24px 0 16px; }
+  .features {
+    margin: 0 0 24px;
+    padding-left: 20px;
+    line-height: 1.6;
+  }
+  .features li { margin-bottom: 6px; color: var(--text-primary); }
+  .form-intro {
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+    margin: 0 0 20px;
+  }
+  .beta-form { display: flex; flex-direction: column; gap: 18px; margin-bottom: 24px; }
+  .field { display: flex; flex-direction: column; gap: 6px; }
+  label {
+    font-size: 13px;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+  .req { color: var(--tier-high-fg, #c00); }
+  input[type="text"], input[type="email"], select, textarea {
+    background: var(--bg-surface-2);
+    border: 0.5px solid var(--border-default);
+    color: var(--text-primary);
+    padding: 10px 12px;
+    font-family: var(--font-sans);
+    font-size: 14px;
+    border-radius: 0;
+    width: 100%;
+  }
+  textarea { font-family: var(--font-sans); resize: vertical; }
+  input:focus, select:focus, textarea:focus {
+    outline: none;
+    border-color: var(--border-strong);
+  }
+  button[type="submit"] {
+    background: var(--text-primary);
+    color: var(--bg-page);
+    border: 0;
+    padding: 12px 24px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    cursor: pointer;
+    border-radius: 0;
+    text-transform: lowercase;
+    width: fit-content;
+  }
+  button[type="submit"]:hover:not(:disabled) { opacity: 0.85; }
+  button[type="submit"]:disabled { opacity: 0.5; cursor: wait; }
+  .form-note {
+    color: var(--text-secondary);
+    font-size: 12px;
+    line-height: 1.5;
+    margin: 0;
+  }
+  .hp {
+    position: absolute;
+    left: -9999px;
+    top: -9999px;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+  }
+  details {
+    border-bottom: 0.5px solid var(--border-subtle);
+    padding: 12px 0;
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 500;
+    color: var(--text-primary);
+    list-style: none;
+    padding-right: 24px;
+    position: relative;
+  }
+  summary::after {
+    content: "+";
+    position: absolute;
+    right: 0;
+    top: 0;
+    color: var(--text-secondary);
+    font-family: var(--font-mono);
+  }
+  details[open] summary::after { content: "−"; }
+  details > p {
+    margin: 10px 0 0;
+    color: var(--text-secondary);
+    font-size: 14px;
+    line-height: 1.55;
+  }
+  @media (max-width: 600px) {
+    .meta-grid { grid-template-columns: 1fr; }
+    h1 { font-size: 26px; }
+  }
+</style>

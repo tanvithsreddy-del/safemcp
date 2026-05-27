@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://safemcp.info/sitemap.xml
+Sitemap: https://safemcp.info/sitemap-index.xml

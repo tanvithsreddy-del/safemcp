@@ -1,0 +1,17 @@
+{
+  "testdino-hq/testdino-mcp": {
+    "description": "TestDino MCP server. Lets AI agents interact with TestDino's test automation platform via the Model Context Protocol.",
+    "primary_function": "Exposes TestDino's test automation capabilities to AI clients.",
+    "runtime": "node",
+    "requires_api_key": true,
+    "mcp_category": "dev_testing",
+    "mcp_tags": "dev_testing",
+    "install": {
+      "name": "TestDino",
+      "command": "npx",
+      "args": ["-y", "testdino-mcp"],
+      "env": { "TESTDINO_PAT": "your-token" }
+    },
+    "docs_url": "https://docs.testdino.com/mcp/overview"
+  }
+}

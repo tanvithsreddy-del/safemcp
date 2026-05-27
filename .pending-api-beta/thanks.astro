@@ -1,0 +1,86 @@
+---
+import Base from "../../layouts/Base.astro";
+
+export const prerender = true;
+---
+
+<Base
+  title="Application received — SafeMCP API Beta"
+  description="Your SafeMCP API beta application was received."
+>
+  <section class="thanks">
+    <p class="eyebrow">api beta</p>
+    <h1>Got it.</h1>
+    <p class="lede">
+      Application received. I'll review it by hand within a few days.
+      If you're in the first 100, you'll get an email with the API key,
+      endpoint docs, and your rate limit. If not, you'll go on the
+      waitlist for the next batch.
+    </p>
+
+    <p class="lede">
+      In the meantime, the directory itself is open. Browse, search,
+      copy install snippets, nothing changes there.
+    </p>
+
+    <div class="actions">
+      <a href="/" class="btn">Back to directory</a>
+      <a href="/browse/" class="btn-secondary">Browse servers</a>
+    </div>
+
+    <p class="footnote">
+      Wrong info on your application? Email
+      <a href="mailto:hello@safemcp.info">hello@safemcp.info</a>
+      and i'll fix it.
+    </p>
+  </section>
+</Base>
+
+<style>
+  .thanks { max-width: 640px; margin: 0 auto; padding: 64px 0 100px; }
+  .eyebrow {
+    color: var(--text-secondary);
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin: 0 0 8px;
+    font-family: var(--font-mono);
+  }
+  h1 { margin: 0 0 16px; font-size: 32px; }
+  .lede {
+    font-size: 16px;
+    line-height: 1.6;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+  }
+  .actions { display: flex; gap: 12px; margin: 32px 0 16px; flex-wrap: wrap; }
+  .btn {
+    background: var(--text-primary);
+    color: var(--bg-page);
+    padding: 12px 24px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-decoration: none;
+    text-transform: lowercase;
+    border: 0.5px solid var(--text-primary);
+  }
+  .btn-secondary {
+    background: transparent;
+    color: var(--text-primary);
+    padding: 12px 24px;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    text-decoration: none;
+    text-transform: lowercase;
+    border: 0.5px solid var(--border-default);
+  }
+  .btn:hover { opacity: 0.85; }
+  .btn-secondary:hover { border-color: var(--border-strong); }
+  .footnote {
+    color: var(--text-secondary);
+    font-size: 13px;
+    margin: 24px 0 0;
+    line-height: 1.55;
+  }
+  .footnote a { color: var(--text-primary); }
+</style>
