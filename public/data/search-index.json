@@ -7,3 +7,14 @@
   "st": 0,
   "pf": "Provides Amazon product research, niche validation, competitor analysis, keyword research, pricing analysis, sales estimates, listing optimization, and PPC research for AI clients."
 }
+  },
+  {
+    "n": "amzscout-skill-mcp",
+    "o": "amzscout-corp",
+    "d": "Official AMZScout Skill + MCP providing Amazon marketplace data and analysis for AI clients.",
+    "c": "analytics_sales",
+    "s": 55,
+    "st": 0,
+    "pf": "Provides Amazon product research, niche validation, competitor analysis, keyword research, pricing analysis, sales estimates, listing optimization, and PPC research for AI clients."
+  }
+]
