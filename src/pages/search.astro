@@ -69,9 +69,20 @@ const total = totalCount();
   }
 
   async function loadIndex(): Promise<Idx[]> {
-    const res = await fetch("/data/search-index.json");
+    const [res, manualRes] = await Promise.all([
+      fetch("/data/search-index.json"),
+      fetch("/data/manual-submissions.json"),
+    ]);
     if (!res.ok) throw new Error("Failed to load search index");
-    return res.json();
+
+    const base = (await res.json()) as Idx[];
+    const manual = manualRes.ok ? ((await manualRes.json()) as Idx[]) : [];
+    const merged = new Map<string, Idx>();
+
+    for (const s of base) merged.set(`${s.o}/${s.n}`.toLowerCase(), s);
+    for (const s of manual) merged.set(`${s.o}/${s.n}`.toLowerCase(), s);
+
+    return Array.from(merged.values());
   }
 
   function search(idx: Idx[], q: string, limit = 200): Idx[] {
