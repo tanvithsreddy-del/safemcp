@@ -1,0 +1,56 @@
+[
+  {
+    "n": "orbit",
+    "o": "Noveum",
+    "d": "Free, open-source realtime task manager with issues, boards, sprints, projects, docs and files, including a hosted MCP server for AI agents.",
+    "c": "project_management",
+    "s": 76,
+    "st": 57,
+    "pf": "Lets AI agents manage Orbit issues, projects, sprints, docs and files through a workspace-scoped OAuth MCP connection."
+  },
+  {
+    "n": "ida-pro-mcp",
+    "o": "GrecAndrei",
+    "d": "Local-first, deterministic MCP server for IDA Pro and IDA Home with 109 strict-schema reverse-engineering operations, evidence-backed findings and policy-gated IDB edits.",
+    "c": "dev_debugging",
+    "s": 67,
+    "st": 13,
+    "pf": "Exposes IDA Pro/Home reverse-engineering operations to AI clients through MCP."
+  },
+  {
+    "n": "mcp-trendpulse",
+    "o": "AKzar1el",
+    "d": "Local/community stdio MCP server for Google News research, article extraction and Google Trends analysis.",
+    "c": "web_search",
+    "s": 60,
+    "st": 5,
+    "pf": "Provides Google News and Google Trends research tools for keywords, markets, SEO and content analysis."
+  },
+  {
+    "n": "ruagentic-directory",
+    "o": "sam1siam",
+    "d": "Hosted MCP endpoint for searching RUAGENTIC's public directory of MCP servers, MCP clients and AI agents.",
+    "c": "web_search",
+    "s": 55,
+    "st": 0,
+    "pf": "Provides read-only search_directory and get_listing tools for MCP and agent discovery."
+  },
+  {
+    "n": "corpusiq-docs",
+    "o": "CorpusIQ",
+    "d": "Remote MCP server for authenticated access to business data across 40+ connectors including QuickBooks, Shopify, Gmail and GA4.",
+    "c": "data_warehouse",
+    "s": 69,
+    "st": 22,
+    "pf": "Lets AI clients query connected business systems through a remote OAuth MCP endpoint."
+  },
+  {
+    "n": "fabling",
+    "o": "Fabling",
+    "d": "Hosted MCP server for Spanish and French learning data, including saved vocabulary, grammar evidence, recent practice and practice focus.",
+    "c": "other",
+    "s": 35,
+    "st": 0,
+    "pf": "Lets connected AI assistants read a user's language-learning state and, with separate write permissions, update word status and practice progress."
+  }
+]
