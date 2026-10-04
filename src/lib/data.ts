@@ -5,6 +5,7 @@
 import servers from "../data/servers.json";
 import categories from "../data/categories.json";
 import top from "../data/top.json";
+import manualSubmissions from "../data/manual_submissions.json";
 
 export type Server = {
   id?: number;
@@ -43,7 +44,14 @@ export type CategorySummary = {
   top5: Array<{ name: string; owner: string; score: number; stars: number }>;
 };
 
-export const allServers = servers as unknown as Server[];
+const generatedServers = servers as unknown as Server[];
+const manualServers = manualSubmissions as unknown as Server[];
+const manualKeys = new Set(manualServers.map((s) => `${s.owner}/${s.name}`.toLowerCase()));
+
+export const allServers = [
+  ...generatedServers.filter((s) => !manualKeys.has(`${s.owner}/${s.name}`.toLowerCase())),
+  ...manualServers,
+];
 export const allCategories = categories as unknown as CategorySummary[];
 export const topServers = top as unknown as Server[];
 
