@@ -6,6 +6,7 @@ import InstallSnippet from "../../../components/InstallSnippet.astro";
 import { computeScoreBreakdown } from "../../../lib/score";
 import { freshness } from "../../../lib/runtime";
 import type { Server } from "../../../lib/data";
+import manualSubmissions from "../../../data/manual_submissions.json";
 
 // This page is dynamic — it queries D1 at request time.
 // Cloudflare edge caches the response for 24h via Cache-Control headers below.
@@ -66,6 +67,22 @@ if (db) {
   }
 }
 
+// Manual submissions are a small fallback layer for valid servers that the
+// scanner/D1 export has not picked up yet.
+if (!server) {
+  const key = `${owner}/${name}`.toLowerCase();
+  const manual = (manualSubmissions as unknown as Server[]).find(
+    (s) => `${s.owner}/${s.name}`.toLowerCase() === key
+  );
+  if (manual) {
+    server = manual;
+    const cat = server.mcp_category || "unknown";
+    similar = (manualSubmissions as unknown as Server[])
+      .filter((s) => (s.mcp_category || "unknown") === cat && `${s.owner}/${s.name}`.toLowerCase() !== key)
+      .slice(0, 5);
+  }
+}
+
 // Not found OR D1 unavailable — return a 404 response. Cloudflare will serve
 // our 404.astro static asset for this status code thanks to the assets routing.
 if (!server) {
@@ -98,6 +115,7 @@ const isVerified = maintainers.length > 0;
 const baseScore = server.recommended_score ?? 0;
 const effectiveScore = isVerified ? baseScore + VERIFIED_BONUS : baseScore;
 const fresh = freshness(server);
+const repoIsGitHub = /^https:\/\/github\.com\//i.test(server.repo_url);
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -107,7 +125,7 @@ const jsonLd = {
   "applicationCategory": "DeveloperApplication",
   "operatingSystem": server.runtime || "Cross-platform",
   "url": server.repo_url,
-  "codeRepository": server.repo_url,
+  ...(repoIsGitHub ? { "codeRepository": server.repo_url } : {}),
   "applicationSubCategory": `MCP Server (${server.mcp_category || "uncategorized"})`,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
   "aggregateRating": {
@@ -174,7 +192,7 @@ const jsonLd = {
     </p>
   )}
 
-  <p style="margin: 16px 0;"><a href={server.repo_url} target="_blank" rel="noopener">View on GitHub →</a></p>
+  <p style="margin: 16px 0;"><a href={server.repo_url} target="_blank" rel="noopener">{repoIsGitHub ? "View on GitHub →" : "Visit website →"}</a></p>
 
   <InstallSnippet server={server} />
 
