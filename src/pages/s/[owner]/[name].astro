@@ -174,9 +174,9 @@ const jsonLd = {
         <svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M8 0a8 8 0 1 0 0 16A8 8 0 0 0 8 0Zm3.78 6.28-4.5 4.5a.75.75 0 0 1-1.06 0l-2-2a.75.75 0 1 1 1.06-1.06L6.75 9.19l3.97-3.97a.75.75 0 1 1 1.06 1.06Z"/></svg>
         Verified by owner
       </span>
-    ) : (
+    ) : repoIsGitHub ? (
       <a class="claim-cta" href={`/api/auth/github?serverId=${encodeURIComponent(server.owner + "/" + server.name)}`} rel="nofollow">Claim this server &rarr;</a>
-    )}
+    ) : null}
   </div>
 
   {isVerified && maintainers.length > 0 && (
