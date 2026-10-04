@@ -5,6 +5,10 @@ interface Props { server: Server }
 const { server } = Astro.props;
 
 const repoUrl = server.repo_url;
+const endpointUrl =
+  typeof (server as any).endpoint_url === "string" && (server as any).endpoint_url
+    ? String((server as any).endpoint_url)
+    : null;
 const runtime = (server.runtime || "").toLowerCase();
 
 const runtimeHint =
@@ -34,14 +38,26 @@ const args =
     ? `["<package-name>"]`
     : `["<args>"]`;
 
-const cloneBlock = `# 1. Clone the repository
+const cloneBlock = endpointUrl
+  ? `# Hosted MCP endpoint
+${endpointUrl}`
+  : `# 1. Clone the repository
 git clone ${repoUrl}
 cd ${server.name}
 
 # 2. Follow the project's README for setup
 #    (look for installation, env vars, and run commands)`;
 
-const configBlock = `// In your Claude Desktop config (~/.../claude_desktop_config.json):
+const configBlock = endpointUrl
+  ? `// Add as a remote MCP server:
+{
+  "mcpServers": {
+    "${server.name}": {
+      "url": "${endpointUrl}"
+    }
+  }
+}`
+  : `// In your Claude Desktop config (~/.../claude_desktop_config.json):
 {
   "mcpServers": {
     "${server.name}": {
@@ -61,7 +77,7 @@ const configBlock = `// In your Claude Desktop config (~/.../claude_desktop_conf
   )}
 
   <div class="install-block">
-    <p class="block-label">1. Clone and review</p>
+    <p class="block-label">{endpointUrl ? "1. Remote endpoint" : "1. Clone and review"}</p>
     <div class="code-wrap">
       <pre><code data-copy-source>{cloneBlock}</code></pre>
       <button class="copy-btn" data-copy-btn type="button" aria-label="Copy">Copy</button>
@@ -69,14 +85,17 @@ const configBlock = `// In your Claude Desktop config (~/.../claude_desktop_conf
   </div>
 
   <div class="install-block">
-    <p class="block-label">2. Claude Desktop config (template)</p>
+    <p class="block-label">2. MCP client config (template)</p>
     <div class="code-wrap">
       <pre><code data-copy-source>{configBlock}</code></pre>
       <button class="copy-btn" data-copy-btn type="button" aria-label="Copy">Copy</button>
     </div>
     <p class="block-note">
-      Replace <span class="mono">&lt;package-name&gt;</span> with the actual command from the
-      project's README. Not every server uses the same install pattern.
+      {endpointUrl ? (
+        <>Use the hosted endpoint above. Authentication requirements are shown on the server's own documentation.</>
+      ) : (
+        <>Replace <span class="mono">&lt;package-name&gt;</span> with the actual command from the project's README. Not every server uses the same install pattern.</>
+      )}
     </p>
   </div>
 </section>
