@@ -52,5 +52,32 @@
     "s": 35,
     "st": 0,
     "pf": "Lets connected AI assistants read a user's language-learning state and, with separate write permissions, update word status and practice progress."
+  },
+  {
+    "n": "nanoparse-mcp",
+    "o": "nanoparse-dev",
+    "d": "Hosted web-content extraction MCP with clean Markdown, page metadata and Litmus source-intelligence signals. The older local npm client is retired; use the hosted endpoint.",
+    "c": "web_scraping",
+    "s": 53,
+    "st": 0,
+    "pf": "Lets AI assistants parse public URLs into structured Markdown and source-trust metadata through a remote pay-per-parse MCP service."
+  },
+  {
+    "n": "shipvela-codex",
+    "o": "stefanautomateed",
+    "d": "Hosted Shipvela MCP for owner-authorized website publishing, staging, deployment status and build logs. OAuth is required; the linked MIT repository contains client/plugin materials, not the proprietary hosted server source.",
+    "c": "dev_ci_cd",
+    "s": 50,
+    "st": 0,
+    "pf": "Lets AI coding assistants manage and publish websites to Shipvela through a remote, owner-approved OAuth MCP connection."
+  },
+  {
+    "n": "skyaccess-mcp",
+    "o": "sky-access",
+    "d": "Hosted MCP for private-jet empty-leg flight search, flight details, charter estimates and booking handoff links. Public search is documented as not requiring an account or API key.",
+    "c": "web_search",
+    "s": 55,
+    "st": 1,
+    "pf": "Lets AI assistants find available empty-leg flights, inspect flight details and estimate charters via a remote MCP endpoint."
   }
 ]
