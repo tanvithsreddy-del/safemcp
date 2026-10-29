@@ -116,6 +116,8 @@ const baseScore = server.recommended_score ?? 0;
 const effectiveScore = isVerified ? baseScore + VERIFIED_BONUS : baseScore;
 const fresh = freshness(server);
 const repoIsGitHub = /^https:\/\/github\.com\//i.test(server.repo_url);
+const websiteUrl = typeof (server as any).website_url === "string" ? String((server as any).website_url).trim() : "";
+const showWebsite = /^https:\/\//i.test(websiteUrl) && websiteUrl !== server.repo_url;
 
 const jsonLd = {
   "@context": "https://schema.org",
@@ -193,6 +195,9 @@ const jsonLd = {
   )}
 
   <p style="margin: 16px 0;"><a href={server.repo_url} target="_blank" rel="noopener">{repoIsGitHub ? "View on GitHub →" : "Visit website →"}</a></p>
+  {showWebsite && (
+    <p style="margin: -6px 0 16px;"><a href={websiteUrl} target="_blank" rel="noopener noreferrer">Official website →</a></p>
+  )}
 
   <InstallSnippet server={server} />
 
