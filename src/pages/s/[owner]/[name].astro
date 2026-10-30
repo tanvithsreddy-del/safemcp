@@ -67,20 +67,20 @@ if (db) {
   }
 }
 
-// Manual submissions are a small fallback layer for valid servers that the
-// scanner/D1 export has not picked up yet.
-if (!server) {
-  const key = `${owner}/${name}`.toLowerCase();
-  const manual = (manualSubmissions as unknown as Server[]).find(
-    (s) => `${s.owner}/${s.name}`.toLowerCase() === key
-  );
-  if (manual) {
-    server = manual;
-    const cat = server.mcp_category || "unknown";
-    similar = (manualSubmissions as unknown as Server[])
-      .filter((s) => (s.mcp_category || "unknown") === cat && `${s.owner}/${s.name}`.toLowerCase() !== key)
-      .slice(0, 5);
-  }
+// Find the manual record regardless of whether D1 already contains a row.
+// Manual entries are authoritative for independently curated website URLs.
+const manualKey = `${owner}/${name}`.toLowerCase();
+const manualEntry = (manualSubmissions as unknown as Server[]).find(
+  (s) => `${s.owner}/${s.name}`.toLowerCase() === manualKey
+);
+
+// Manual submissions are also a fallback for records not yet present in D1.
+if (!server && manualEntry) {
+  server = manualEntry;
+  const cat = server.mcp_category || "unknown";
+  similar = (manualSubmissions as unknown as Server[])
+    .filter((s) => (s.mcp_category || "unknown") === cat && `${s.owner}/${s.name}`.toLowerCase() !== manualKey)
+    .slice(0, 5);
 }
 
 // Not found OR D1 unavailable — return a 404 response. Cloudflare will serve
@@ -116,7 +116,9 @@ const baseScore = server.recommended_score ?? 0;
 const effectiveScore = isVerified ? baseScore + VERIFIED_BONUS : baseScore;
 const fresh = freshness(server);
 const repoIsGitHub = /^https:\/\/github\.com\//i.test(server.repo_url);
-const websiteUrl = typeof (server as any).website_url === "string" ? String((server as any).website_url).trim() : "";
+const curatedWebsite = typeof (manualEntry as any)?.website_url === "string" ? String((manualEntry as any).website_url).trim() : "";
+const databaseWebsite = typeof (server as any).website_url === "string" ? String((server as any).website_url).trim() : "";
+const websiteUrl = curatedWebsite || databaseWebsite;
 const showWebsite = /^https:\/\//i.test(websiteUrl) && websiteUrl !== server.repo_url;
 
 const jsonLd = {
